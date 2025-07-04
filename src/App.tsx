@@ -2,11 +2,16 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomeScreen from './pages/HomeScreen';
-import OperatorInterface from './pages/OperatorInterface';
 import OperatorInput from './pages/OperatorInput';
-import LoginScreen from './pages/LoginScreen';
+import OperatorInterface from './pages/OperatorInterfaceWorking';
 import QualityScreen from './pages/QualityScreen';
-import ShiftScreen from './pages/ShiftScreen';
+import QualityLogin from './pages/QualityLogin';
+import QualityManagement from './pages/QualityManagement';
+import SupervisorLogin from './pages/SupervisorLogin';
+import ConfigurationScreen from './pages/ConfigurationScreen';
+import MachineInformation from './pages/MachineInformation';
+import DowntimeList from './pages/DowntimeList';
+import ShiftManagement from './pages/ShiftManagement';
 import StandardCycleTime from './pages/StandardCycleTime';
 
 const theme = createTheme({
@@ -112,12 +117,17 @@ function App() {
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/operator-input" element={<OperatorInput />} />
-          <Route path="/quality" element={<QualityScreen />} />
-          <Route path="/shifts" element={<ShiftScreen />} />
-          <Route path="/cycle-times" element={<StandardCycleTime />} />
-          {/* Keep old routes for backward compatibility */}
           <Route path="/operator-interface" element={<OperatorInterface />} />
-          <Route path="/login" element={<LoginScreen />} />
+          <Route path="/quality" element={<QualityLogin />} />
+          <Route path="/quality-interface" element={<QualityManagement />} />
+<Route path="/supervisor" element={<SupervisorLogin />} />
+<Route path="/configuration" element={<ConfigurationScreen />} />
+<Route path="/machine-info" element={<MachineInformation />} />
+<Route path="/downtime-list" element={<DowntimeList />} />
+<Route path="/shifts" element={<ShiftManagement />} />
+          <Route path="/cycle-times" element={<StandardCycleTime />} />
+          {/* Add error handling for invalid routes */}
+          <Route path="*" element={<HomeScreen />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
