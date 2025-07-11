@@ -2,7 +2,6 @@ import {
   Container, 
   Typography, 
   Box, 
-  AppBar, 
   Toolbar, 
   IconButton, 
   useTheme,
@@ -179,10 +178,10 @@ const OperatorInterface = () => {
     console.log('Using fallback machine:', selectedMachine);
   }
 
-  // Filters state
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
-  const [selectedModel, setSelectedModel] = useState('');
+  // Filters state - Change 2: Set default dates to current date/time
+  const [fromDate, setFromDate] = useState<Date | null>(new Date());
+  const [toDate, setToDate] = useState<Date | null>(new Date());
+  const [selectedShift, setSelectedShift] = useState('');
   
   // Table state
   const [records, setRecords] = useState<DowntimeRecord[]>([]);
@@ -190,14 +189,16 @@ const OperatorInterface = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  
+  // Change 8: Sorting state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Dropdown options
-  const models = [
-    'Model A-100',
-    'Model B-200', 
-    'Model C-300',
-    'Model D-400',
-    'Custom Model'
+  // Dropdown options - Change 4: Add Shift options instead of Model
+  const shifts = [
+    'Day Shift (6AM - 2PM)',
+    'Afternoon Shift (2PM - 10PM)', 
+    'Night Shift (10PM - 6AM)'
   ];
 
   const downtimeTypes = [
@@ -226,13 +227,13 @@ const OperatorInterface = () => {
     baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
 
     // Get all downtime records
-    async getDowntimeRecords(machineId: string, fromDate?: Date, toDate?: Date, model?: string): Promise<ApiResponse> {
+    async getDowntimeRecords(machineId: string, fromDate?: Date, toDate?: Date, shift?: string): Promise<ApiResponse> {
       try {
         const params = new URLSearchParams();
         params.append('machineId', machineId);
         if (fromDate) params.append('fromDate', fromDate.toISOString());
         if (toDate) params.append('toDate', toDate.toISOString());
-        if (model) params.append('model', model);
+        if (shift) params.append('shift', shift);
 
         const response = await fetch(`${this.baseUrl}/downtime?${params}`);
         const data = await response.json();
@@ -310,7 +311,7 @@ const OperatorInterface = () => {
       selectedMachine.value,
       fromDate || undefined,
       toDate || undefined,
-      selectedModel || undefined
+      selectedShift || undefined
     );
 
     if (result.success) {
@@ -347,21 +348,6 @@ const OperatorInterface = () => {
     loadData();
   };
 
-  const handleAddRecord = () => {
-    const newRecord: DowntimeRecord = {
-      id: Date.now(), // Temporary ID
-      model: '',
-      startDate: null,
-      finishTime: null,
-      totalDowntime: 0,
-      downtimeType: '',
-      downtimeReason: '',
-      details: ''
-    };
-    setRecords([...records, newRecord]);
-    setEditingRow(newRecord.id);
-    setIsEditMode(true);
-  };
 
   const handleEdit = (id: number) => {
     setEditingRow(id);
@@ -406,6 +392,48 @@ const OperatorInterface = () => {
       setRecords(records.filter(r => r.id !== id));
     }
   };
+
+  // Change 8: Sorting functionality
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedRecords = [...records].sort((a, b) => {
+    if (!sortColumn) return 0;
+    
+    let aValue: any;
+    let bValue: any;
+    
+    switch (sortColumn) {
+      case 'model':
+        aValue = a.model;
+        bValue = b.model;
+        break;
+      case 'startDate':
+        aValue = a.startDate?.getTime() || 0;
+        bValue = b.startDate?.getTime() || 0;
+        break;
+      case 'finishTime':
+        aValue = a.finishTime?.getTime() || 0;
+        bValue = b.finishTime?.getTime() || 0;
+        break;
+      case 'totalDowntime':
+        aValue = a.totalDowntime;
+        bValue = b.totalDowntime;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   const handleRecordChange = (id: number, field: keyof DowntimeRecord, value: any) => {
     setRecords(records.map(record => {
@@ -453,66 +481,135 @@ const OperatorInterface = () => {
         backgroundAttachment: 'fixed',
         overflow: 'hidden'
       }}>
-      {/* Header */}
-      <AppBar position="fixed" sx={{ 
+      {/* Header - Change 3: Match Home Screen header exactly */}
+      <AppBar position="static" sx={{ 
+        width: '100%',
+        maxWidth: '100vw',
+        left: 0,
+        right: 0,
         background: 'linear-gradient(135deg, #FFC500 0%, #FFD700 50%, #FFC500 100%)',
-        boxShadow: '0 4px 20px rgba(255, 197, 0, 0.3)',
-        height: 70
+        boxShadow: '0 4px 20px rgba(255, 197, 0, 0.3), 0 2px 10px rgba(0,0,0,0.1)',
+        height: 80,
+        borderBottom: '2px solid rgba(255,255,255,0.2)',
+        backdropFilter: 'blur(10px)'
       }}>
         <Container maxWidth="xl" disableGutters>
           <Toolbar sx={{ 
+            px: { xs: 2, md: 4 },
             justifyContent: 'space-between',
             height: '100%',
-            px: { xs: 2, md: 4 }
+            position: 'relative'
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* Left Section - Logo and Brand */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              height: '100%',
+              position: 'relative'
+            }}>
+              {/* Enhanced Logo Container */}
+              <Box sx={{ 
+                mr: 3,
+                width: 60,
+                height: 60,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%',
+                background: 'linear-gradient(145deg, #1a365d, #2d4a7a)',
+                boxShadow: '0 8px 32px rgba(26, 54, 93, 0.4), inset 0 2px 4px rgba(255,255,255,0.2)',
+                border: '3px solid #FFD700',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.08) rotate(8deg)',
+                  boxShadow: '0 12px 40px rgba(26, 54, 93, 0.6), inset 0 2px 6px rgba(255,255,255,0.3)',
+                  border: '3px solid #FFC500'
+                },
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  width: '70px',
+                  height: '70px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.3), transparent)',
+                  animation: 'logoGlow 3s ease-in-out infinite',
+                  '@keyframes logoGlow': {
+                    '0%, 100%': { opacity: 0, transform: 'scale(1)', filter: 'blur(2px)' },
+                    '50%': { opacity: 1, transform: 'scale(1.15)', filter: 'blur(0px)' }
+                  }
+                },
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 50%)',
+                  zIndex: 2
+                }
+              }}>
+                <img 
+                  src="/Logoforcat.png" 
+                  alt="Brooklyne Park CAT Logo" 
+                  style={{ 
+                    width: '70%', 
+                    height: '70%', 
+                    objectFit: 'contain',
+                    filter: 'brightness(1.1) contrast(1.1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))',
+                    zIndex: 3,
+                    position: 'relative'
+                  }}
+                />
+              </Box>
+              
+              {/* Enhanced Brand Text */}
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography variant="h5" component="div" sx={{ 
+                  fontWeight: 800,
+                  background: 'linear-gradient(45deg, #1a365d, #2d7ff9, #1a365d)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  fontSize: '1.4rem',
+                  letterSpacing: '0.5px',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  mb: 0.2
+                }}>
+                  BROOKLYNE PARK CAT
+                </Typography>
+                <Typography variant="caption" sx={{ 
+                  color: 'rgba(26, 54, 93, 0.8)',
+                  fontWeight: 500,
+                  fontSize: '0.75rem',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase'
+                }}>
+                  Operator Interface
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Right Section - Navigation */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <IconButton 
                 color="inherit" 
                 onClick={handleBack}
                 sx={{ 
-                  mr: 2,
                   color: '#1a365d',
                   backgroundColor: 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)'
+                    backgroundColor: 'rgba(255,255,255,0.3)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                   }
                 }}
               >
                 <ArrowBackIcon />
               </IconButton>
-              <PrecisionManufacturingIcon sx={{ mr: 1, color: '#1a365d', fontSize: 28 }} />
-              <Box>
-                <Typography variant="h6" sx={{ 
-                  fontWeight: 700,
-                  color: '#1a365d',
-                  fontSize: '1.3rem',
-                  lineHeight: 1
-                  }}>
-                    {selectedMachine.label} - Data Entry
-                  </Typography>
-                  <Typography variant="caption" sx={{ 
-                    color: 'rgba(26, 54, 93, 0.7)',
-                    fontSize: '0.75rem'
-                  }}>
-                    {selectedMachine.description}
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Chip 
-                  label={selectedMachine.status} 
-                  color="success" 
-                  size="small"
-                  sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                />
-                {selectedMachine.value === 'demo' && (
-                  <Chip 
-                    label="Demo Mode" 
-                    color="warning" 
-                    size="small"
-                    sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                  />
-                )}
+              
               {saveStatus !== 'idle' && (
                 <Chip 
                   icon={<CloudSyncIcon />}
@@ -525,6 +622,7 @@ const OperatorInterface = () => {
                     saveStatus === 'success' ? 'success' : 'error'
                   }
                   size="small"
+                  sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
                 />
               )}
             </Box>
@@ -538,7 +636,7 @@ const OperatorInterface = () => {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        mt: '70px'
+        mt: '80px'
       }}>
         {/* Background overlay */}
         <Box sx={{
@@ -561,7 +659,7 @@ const OperatorInterface = () => {
           overflow: 'hidden',
           p: 3
         }}>
-          {/* Filters Section */}
+          {/* Filters Section - Task 1: Keep only date picker visible for filtering */}
           <Fade in timeout={800}>
             <Card sx={{ 
               mb: 3, 
@@ -583,12 +681,12 @@ const OperatorInterface = () => {
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
                   }}>
-                    Data Filters
+                    Date Filter
                   </Typography>
                 </Box>
                 
                 <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12} sm={6} md={4}>
                     <DatePicker
                       label="From Date"
                       value={fromDate}
@@ -611,7 +709,7 @@ const OperatorInterface = () => {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12} sm={6} md={4}>
                     <DatePicker
                       label="To Date"
                       value={toDate}
@@ -634,52 +732,12 @@ const OperatorInterface = () => {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Model</InputLabel>
-                      <Select
-                        value={selectedModel}
-                        label="Model"
-                        onChange={(e) => setSelectedModel(e.target.value)}
-                        sx={{
-                          '&:hover': {
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 4px 12px rgba(26, 54, 93, 0.1)',
-                          }
-                        }}
-                      >
-                        <MenuItem value="">All Models</MenuItem>
-                        {models.map((model) => (
-                          <MenuItem key={model} value={model}>{model}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      onClick={handleFilter}
-                      sx={{ 
-                        height: '40px',
-                        background: 'linear-gradient(45deg, #1a365d, #2d7ff9)',
-                        boxShadow: '0 3px 10px rgba(26, 54, 93, 0.3)',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #2d7ff9, #1a365d)',
-                          boxShadow: '0 6px 20px rgba(26, 54, 93, 0.4)',
-                        }
-                      }}
-                      disabled={loading}
-                    >
-                      {loading ? 'Loading...' : 'Apply Filters'}
-                    </Button>
-                  </Grid>
                 </Grid>
               </CardContent>
             </Card>
           </Fade>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Change 6: Remove Add functionality */}
           <Slide direction="up" in timeout={1000}>
             <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
               <Button
@@ -705,27 +763,6 @@ const OperatorInterface = () => {
               >
                 {isEditMode ? 'Exit Edit Mode' : 'Edit Mode'}
               </Button>
-              
-              {isEditMode && (
-                <Fade in timeout={500}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<AddIcon />}
-                    onClick={handleAddRecord}
-                    sx={{
-                      borderColor: theme.palette.success.main,
-                      color: theme.palette.success.main,
-                      '&:hover': {
-                        borderColor: theme.palette.success.dark,
-                        backgroundColor: theme.palette.success.light,
-                        color: theme.palette.success.contrastText,
-                      }
-                    }}
-                  >
-                    Add Record
-                  </Button>
-                </Fade>
-              )}
             </Box>
           </Slide>
 
@@ -766,26 +803,34 @@ const OperatorInterface = () => {
                         fontWeight: 700,
                         backgroundColor: 'rgba(26, 54, 93, 0.08)',
                         color: theme.palette.primary.main,
-                        borderBottom: `2px solid ${theme.palette.primary.main}`
-                      }}>Model</TableCell>
+                        borderBottom: `2px solid ${theme.palette.primary.main}`,
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'rgba(26, 54, 93, 0.12)' }
+                      }} onClick={() => handleSort('model')}>Model</TableCell>
                       <TableCell sx={{ 
                         fontWeight: 700,
                         backgroundColor: 'rgba(26, 54, 93, 0.08)',
                         color: theme.palette.primary.main,
-                        borderBottom: `2px solid ${theme.palette.primary.main}`
-                      }}>Start Date</TableCell>
+                        borderBottom: `2px solid ${theme.palette.primary.main}`,
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'rgba(26, 54, 93, 0.12)' }
+                      }} onClick={() => handleSort('startDate')}>Start Time</TableCell>
                       <TableCell sx={{ 
                         fontWeight: 700,
                         backgroundColor: 'rgba(26, 54, 93, 0.08)',
                         color: theme.palette.primary.main,
-                        borderBottom: `2px solid ${theme.palette.primary.main}`
-                      }}>Finish Time</TableCell>
+                        borderBottom: `2px solid ${theme.palette.primary.main}`,
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'rgba(26, 54, 93, 0.12)' }
+                      }} onClick={() => handleSort('finishTime')}>End Time</TableCell>
                       <TableCell sx={{ 
                         fontWeight: 700,
                         backgroundColor: 'rgba(26, 54, 93, 0.08)',
                         color: theme.palette.primary.main,
-                        borderBottom: `2px solid ${theme.palette.primary.main}`
-                      }}>Total Downtime</TableCell>
+                        borderBottom: `2px solid ${theme.palette.primary.main}`,
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'rgba(26, 54, 93, 0.12)' }
+                      }} onClick={() => handleSort('totalDowntime')}>Total Downtime</TableCell>
                       <TableCell sx={{ 
                         fontWeight: 700,
                         backgroundColor: 'rgba(26, 54, 93, 0.08)',
@@ -826,7 +871,7 @@ const OperatorInterface = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    records.map((record, index) => (
+                    sortedRecords.map((record, index) => (
                       <TableRow 
                         key={record.id} 
                         sx={{
@@ -858,9 +903,11 @@ const OperatorInterface = () => {
                                   }
                                 }}
                               >
-                                {models.map((model) => (
-                                  <MenuItem key={model} value={model}>{model}</MenuItem>
-                                ))}
+                                <MenuItem value="Model A-100">Model A-100</MenuItem>
+                                <MenuItem value="Model B-200">Model B-200</MenuItem>
+                                <MenuItem value="Model C-300">Model C-300</MenuItem>
+                                <MenuItem value="Model D-400">Model D-400</MenuItem>
+                                <MenuItem value="Custom Model">Custom Model</MenuItem>
                               </Select>
                             </FormControl>
                           ) : (
@@ -1122,42 +1169,29 @@ const OperatorInterface = () => {
             </CardContent>
           </Card>
         </Fade>
+        </Box>
       </Box>
       
-      {/* Footer */}
-      <Box sx={{ 
-        mt: 'auto',
-        background: 'linear-gradient(135deg, #FFC500 0%, #FFD700 50%, #FFC500 100%)',
-        boxShadow: '0 -4px 20px rgba(255, 197, 0, 0.3)',
+      {/* Footer - Change 3: Match Home Screen footer exactly */}
+      <Box component="footer" sx={{
+        width: '100%',
         py: 2,
-        px: 3,
-        borderTop: '1px solid rgba(255, 197, 0, 0.2)'
+        px: { xs: 2, md: 4 },
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper'
       }}>
-        <Container maxWidth="xl" disableGutters>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 2
+        <Container maxWidth="xl" disableGutters sx={{ 
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+          <Typography variant="body2" sx={{
+            color: 'text.secondary',
+            fontSize: '0.85rem',
+            opacity: 0.8
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <PrecisionManufacturingIcon sx={{ mr: 1, color: '#1a365d', fontSize: 20 }} />
-              <Typography variant="body2" sx={{ 
-                color: '#1a365d',
-                fontWeight: 600,
-                fontSize: '0.9rem'
-              }}>
-                Brooklyne Park CAT - Manufacturing Excellence
-              </Typography>
-            </Box>
-            <Typography variant="caption" sx={{ 
-              color: 'rgba(26, 54, 93, 0.7)',
-              fontSize: '0.75rem'
-            }}>
-              Data Entry Interface • Machine: {selectedMachine.label}
-            </Typography>
-          </Box>
+            2025 Caterpillar Confidential
+          </Typography>
         </Container>
       </Box>
     </Box>

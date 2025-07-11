@@ -10,7 +10,6 @@ import {
   Box,
   useTheme,
   Slide,
-  Paper,
   Divider
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';

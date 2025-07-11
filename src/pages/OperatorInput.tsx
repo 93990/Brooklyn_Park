@@ -406,12 +406,14 @@ const OperatorInput = () => {
                           }}>
                             <Box>
                               <Typography variant="h6" sx={{ 
-                                color: machine.color,
+                                color: 'text.primary',
                                 fontWeight: 600
                               }}>
                                 {machine.label}
                               </Typography>
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography variant="body2" sx={{ 
+                                color: 'text.secondary'
+                              }}>
                                 {machine.description}
                               </Typography>
                             </Box>

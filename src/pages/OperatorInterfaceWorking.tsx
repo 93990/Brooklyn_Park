@@ -33,14 +33,17 @@ import {
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import MainLayout from '../layouts/MainLayout';
+import { commonStyles } from '../theme/AppTheme';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
-import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import SortIcon from '@mui/icons-material/Sort';
 
 interface DowntimeRecord {
   id: number;
@@ -52,6 +55,9 @@ interface DowntimeRecord {
   downtimeReason: string;
   details: string;
 }
+
+type SortField = keyof DowntimeRecord;
+type SortDirection = 'asc' | 'desc';
 
 const OperatorInterfaceWorking = () => {
   const navigate = useNavigate();
@@ -156,13 +162,21 @@ const OperatorInterfaceWorking = () => {
   // Filters state
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [selectedShift, setSelectedShift] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   
   // Table state
   const [records, setRecords] = useState<DowntimeRecord[]>([]);
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const loading = useState(false)[0];
+  
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>('startDate');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  
+  // Shift options
+  const shifts = ['Day Shift', 'Night Shift', 'Morning Shift', 'Evening Shift'];
 
   // Dropdown options
   const models = [
@@ -247,21 +261,6 @@ const OperatorInterfaceWorking = () => {
     console.log('Filter applied:', { fromDate, toDate, selectedModel });
   };
 
-  const handleAddRecord = () => {
-    const newRecord: DowntimeRecord = {
-      id: Date.now(),
-      model: '',
-      startDate: '',
-      finishTime: '',
-      totalDowntime: 0,
-      downtimeType: '',
-      downtimeReason: '',
-      details: ''
-    };
-    setRecords([...records, newRecord]);
-    setEditingRow(newRecord.id);
-    setIsEditMode(true);
-  };
 
   const handleEdit = (id: number) => {
     setEditingRow(id);
@@ -294,6 +293,45 @@ const OperatorInterfaceWorking = () => {
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
   };
+  
+  // Sorting function
+  const handleSort = (field: SortField) => {
+    const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortField(field);
+    setSortDirection(newDirection);
+  };
+  
+  // Sort records based on current sort field and direction
+  const sortedRecords = [...records].sort((a, b) => {
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+    
+    // Handle different data types
+    if (sortField === 'startDate' || sortField === 'finishTime') {
+      aValue = new Date(aValue as string).getTime();
+      bValue = new Date(bValue as string).getTime();
+    } else if (sortField === 'totalDowntime') {
+      aValue = Number(aValue);
+      bValue = Number(bValue);
+    } else {
+      aValue = String(aValue).toLowerCase();
+      bValue = String(bValue).toLowerCase();
+    }
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  // Render sort icon
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <SortIcon sx={{ fontSize: 16, opacity: 0.5 }} />;
+    }
+    return sortDirection === 'asc' ? 
+      <ArrowUpwardIcon sx={{ fontSize: 16, color: theme.palette.primary.main }} /> : 
+      <ArrowDownwardIcon sx={{ fontSize: 16, color: theme.palette.primary.main }} />;
+  };
 
   const handleBack = () => {
     navigate('/operator-input');
@@ -301,31 +339,19 @@ const OperatorInterfaceWorking = () => {
 
   return (
     <ThemeProvider theme={enhancedTheme}>
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        height: '100vh',
-        width: '100vw',
-        bgcolor: 'background.default',
-        backgroundImage: `url(/bgformain.jpg)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-        overflow: 'hidden'
-      }}>
-        {/* Header */}
-        <AppBar position="fixed" sx={{ 
-          background: 'linear-gradient(135deg, #FFC500 0%, #FFD700 50%, #FFC500 100%)',
-          boxShadow: '0 4px 20px rgba(255, 197, 0, 0.3)',
-          height: 70,
-          zIndex: 1100
-        }}>
-          <Container maxWidth="xl" disableGutters>
-            <Toolbar sx={{ 
+      <MainLayout>
+        <Container {...commonStyles.mainContent}>
+          <Box sx={commonStyles.contentWrapper}>
+            {/* Page Header */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
               justifyContent: 'space-between',
-              height: '100%',
-              px: { xs: 2, md: 4 }
+              mb: 3,
+              p: 2,
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              borderRadius: 2,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton 
@@ -365,52 +391,24 @@ const OperatorInterfaceWorking = () => {
                   label={selectedMachine.status} 
                   color="success" 
                   size="small"
-                  sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
                 />
                 {selectedMachine.value === 'demo' && (
                   <Chip 
                     label="Demo Mode" 
                     color="warning" 
                     size="small"
-                    sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
                   />
                 )}
               </Box>
-            </Toolbar>
-          </Container>
-        </AppBar>
+            </Box>
 
-        {/* Main Content */}
-        <Box sx={{ 
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          pt: '90px',
-          height: 'calc(100vh - 70px)'
-        }}>
-          {/* Background overlay */}
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            zIndex: 0
-          }} />
-          
-          <Box sx={{ 
-            position: 'relative', 
-            zIndex: 1,
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            p: 3,
-            pt: 1
-          }}>
+            {/* Main Content */}
+            <Box sx={{ 
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
             {/* Filters Section */}
             <Fade in timeout={800}>
               <Card sx={{ 
@@ -420,22 +418,6 @@ const OperatorInterfaceWorking = () => {
                 border: '1px solid rgba(26, 54, 93, 0.1)'
               }}>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <FilterListIcon sx={{ 
-                      mr: 1, 
-                      color: theme.palette.primary.main,
-                      fontSize: 28
-                    }} />
-                    <Typography variant="h6" sx={{ 
-                      fontWeight: 600,
-                      background: 'linear-gradient(45deg, #1a365d, #2d7ff9)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}>
-                      Data Filters
-                    </Typography>
-                  </Box>
                   
                   <Grid container spacing={3}>
                     <Grid item xs={12} sm={6} md={3}>
@@ -466,11 +448,11 @@ const OperatorInterfaceWorking = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
                       <FormControl fullWidth size="small">
-                        <InputLabel>Model</InputLabel>
+                        <InputLabel>Shift</InputLabel>
                         <Select
-                          value={selectedModel}
-                          label="Model"
-                          onChange={(e) => setSelectedModel(e.target.value)}
+                          label="Shift"
+                          value={selectedShift}
+                          onChange={(e) => setSelectedShift(e.target.value)}
                           sx={{
                             '&:hover': {
                               transform: 'translateY(-1px)',
@@ -478,9 +460,9 @@ const OperatorInterfaceWorking = () => {
                             }
                           }}
                         >
-                          <MenuItem value="">All Models</MenuItem>
-                          {models.map((model) => (
-                            <MenuItem key={model} value={model}>{model}</MenuItem>
+                          <MenuItem value="">All Shifts</MenuItem>
+                          {shifts.map((shift) => (
+                            <MenuItem key={shift} value={shift}>{shift}</MenuItem>
                           ))}
                         </Select>
                       </FormControl>
@@ -490,11 +472,11 @@ const OperatorInterfaceWorking = () => {
                         variant="contained"
                         fullWidth
                         onClick={handleFilter}
-                        sx={{ 
-                          height: '40px',
-                          background: 'linear-gradient(45deg, #1a365d, #2d7ff9)',
-                          boxShadow: '0 3px 10px rgba(26, 54, 93, 0.3)',
-                          '&:hover': {
+                          sx={{ 
+                            height: '40px',
+                            background: 'linear-gradient(45deg, #1a365d, #2d7ff9)',
+                            boxShadow: '0 3px 10px rgba(26, 54, 93, 0.3)',
+                            '&:hover': {
                             background: 'linear-gradient(45deg, #2d7ff9, #1a365d)',
                             boxShadow: '0 6px 20px rgba(26, 54, 93, 0.4)',
                           }
@@ -535,27 +517,6 @@ const OperatorInterfaceWorking = () => {
                 >
                   {isEditMode ? 'Exit Edit Mode' : 'Edit Mode'}
                 </Button>
-                
-                {isEditMode && (
-                  <Fade in timeout={500}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<AddIcon />}
-                      onClick={handleAddRecord}
-                      sx={{
-                        borderColor: theme.palette.success.main,
-                        color: theme.palette.success.main,
-                        '&:hover': {
-                          borderColor: theme.palette.success.dark,
-                          backgroundColor: theme.palette.success.light,
-                          color: theme.palette.success.contrastText,
-                        }
-                      }}
-                    >
-                      Add Record
-                    </Button>
-                  </Fade>
-                )}
               </Box>
             </Slide>
 
@@ -592,48 +553,125 @@ const OperatorInterfaceWorking = () => {
                   <Table stickyHeader>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ 
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(26, 54, 93, 0.08)',
-                          color: theme.palette.primary.main,
-                          borderBottom: `2px solid ${theme.palette.primary.main}`
-                        }}>Model</TableCell>
-                        <TableCell sx={{ 
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(26, 54, 93, 0.08)',
-                          color: theme.palette.primary.main,
-                          borderBottom: `2px solid ${theme.palette.primary.main}`
-                        }}>Start Date</TableCell>
-                        <TableCell sx={{ 
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(26, 54, 93, 0.08)',
-                          color: theme.palette.primary.main,
-                          borderBottom: `2px solid ${theme.palette.primary.main}`
-                        }}>Finish Time</TableCell>
-                        <TableCell sx={{ 
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(26, 54, 93, 0.08)',
-                          color: theme.palette.primary.main,
-                          borderBottom: `2px solid ${theme.palette.primary.main}`
-                        }}>Total Downtime</TableCell>
-                        <TableCell sx={{ 
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(26, 54, 93, 0.08)',
-                          color: theme.palette.primary.main,
-                          borderBottom: `2px solid ${theme.palette.primary.main}`
-                        }}>Downtime Type</TableCell>
-                        <TableCell sx={{ 
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(26, 54, 93, 0.08)',
-                          color: theme.palette.primary.main,
-                          borderBottom: `2px solid ${theme.palette.primary.main}`
-                        }}>Downtime Reason</TableCell>
-                        <TableCell sx={{ 
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(26, 54, 93, 0.08)',
-                          color: theme.palette.primary.main,
-                          borderBottom: `2px solid ${theme.palette.primary.main}`
-                        }}>Details</TableCell>
+                        <TableCell 
+                          sx={{ 
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(26, 54, 93, 0.08)',
+                            color: theme.palette.primary.main,
+                            borderBottom: `2px solid ${theme.palette.primary.main}`,
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease-in-out',
+                          }}
+                          onClick={() => handleSort('model')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Model
+                            {renderSortIcon('model')}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(26, 54, 93, 0.08)',
+                            color: theme.palette.primary.main,
+                            borderBottom: `2px solid ${theme.palette.primary.main}`,
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease-in-out',
+                          }}
+                          onClick={() => handleSort('startDate')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Start Date
+                            {renderSortIcon('startDate')}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(26, 54, 93, 0.08)',
+                            color: theme.palette.primary.main,
+                            borderBottom: `2px solid ${theme.palette.primary.main}`,
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease-in-out',
+                          }}
+                          onClick={() => handleSort('finishTime')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Finish Time
+                            {renderSortIcon('finishTime')}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(26, 54, 93, 0.08)',
+                            color: theme.palette.primary.main,
+                            borderBottom: `2px solid ${theme.palette.primary.main}`,
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease-in-out',
+                          }}
+                          onClick={() => handleSort('totalDowntime')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Total Downtime
+                            {renderSortIcon('totalDowntime')}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(26, 54, 93, 0.08)',
+                            color: theme.palette.primary.main,
+                            borderBottom: `2px solid ${theme.palette.primary.main}`,
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease-in-out',
+                          }}
+                          onClick={() => handleSort('downtimeType')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Downtime Type
+                            {renderSortIcon('downtimeType')}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(26, 54, 93, 0.08)',
+                            color: theme.palette.primary.main,
+                            borderBottom: `2px solid ${theme.palette.primary.main}`,
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease-in-out',
+                          }}
+                          onClick={() => handleSort('downtimeReason')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Downtime Reason
+                            {renderSortIcon('downtimeReason')}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(26, 54, 93, 0.08)',
+                            color: theme.palette.primary.main,
+                            borderBottom: `2px solid ${theme.palette.primary.main}`,
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease-in-out',
+                          }}
+                          onClick={() => handleSort('details')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Details
+                            {renderSortIcon('details')}
+                          </Box>
+                        </TableCell>
                         {isEditMode && <TableCell sx={{ 
                           fontWeight: 700,
                           backgroundColor: 'rgba(26, 54, 93, 0.08)',
@@ -650,7 +688,7 @@ const OperatorInterfaceWorking = () => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        records.map((record, index) => (
+                        sortedRecords.map((record) => (
                           <TableRow 
                             key={record.id} 
                             sx={{
@@ -879,9 +917,10 @@ const OperatorInterfaceWorking = () => {
                 </TableContainer>
               </Card>
             </Fade>
+            </Box>
           </Box>
-        </Box>
-      </Box>
+        </Container>
+      </MainLayout>
     </ThemeProvider>
   );
 };

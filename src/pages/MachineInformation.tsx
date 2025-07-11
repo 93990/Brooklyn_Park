@@ -2,12 +2,8 @@ import {
   Container,
   Typography,
   Box,
-  AppBar,
-  Toolbar,
-  IconButton,
   Paper,
   useTheme,
-  Badge,
   Fade,
   Grow,
   Button,
@@ -26,11 +22,14 @@ import {
   Tooltip,
   Card,
   CardContent,
-  Grid
+  IconButton
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import EnhancedDialog from '../components/EnhancedDialog';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import MainLayout from '../layouts/MainLayout';
+import { commonStyles } from '../theme/AppTheme';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -40,10 +39,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
-import InfoIcon from '@mui/icons-material/Info';
-import BuildIcon from '@mui/icons-material/Build';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import WarningIcon from '@mui/icons-material/Warning';
 
 interface MachineData {
   id: number;
@@ -51,8 +46,6 @@ interface MachineData {
   station: string;
   model: string;
   details: string;
-  status: 'Active' | 'Maintenance' | 'Offline';
-  lastUpdated: string;
 }
 
 const MachineInformation = () => {
@@ -81,45 +74,35 @@ const MachineInformation = () => {
       workArea: 'Production Line A',
       station: 'Station 01',
       model: 'CAT-3516B',
-      details: 'Primary assembly unit for heavy-duty components',
-      status: 'Active',
-      lastUpdated: '2024-01-15'
+      details: 'Primary assembly unit for heavy-duty components'
     },
     {
       id: 2,
       workArea: 'Production Line A',
       station: 'Station 02',
       model: 'CAT-3512C',
-      details: 'Secondary processing unit with automated controls',
-      status: 'Active',
-      lastUpdated: '2024-01-14'
+      details: 'Secondary processing unit with automated controls'
     },
     {
       id: 3,
       workArea: 'Production Line B',
       station: 'Station 03',
       model: 'CAT-C32',
-      details: 'Quality control and testing station',
-      status: 'Maintenance',
-      lastUpdated: '2024-01-10'
+      details: 'Quality control and testing station'
     },
     {
       id: 4,
       workArea: 'Production Line B',
       station: 'Station 04',
       model: 'CAT-C18',
-      details: 'Final assembly and packaging unit',
-      status: 'Active',
-      lastUpdated: '2024-01-12'
+      details: 'Final assembly and packaging unit'
     },
     {
       id: 5,
       workArea: 'Quality Control',
       station: 'QC-01',
       model: 'CAT-C15',
-      details: 'Precision measurement and validation equipment',
-      status: 'Offline',
-      lastUpdated: '2024-01-08'
+      details: 'Precision measurement and validation equipment'
     }
   ]);
 
@@ -174,9 +157,7 @@ const MachineInformation = () => {
         workArea: formData.workArea,
         station: formData.station,
         model: formData.model,
-        details: formData.details,
-        status: 'Active',
-        lastUpdated: new Date().toISOString().split('T')[0]
+        details: formData.details
       };
       setMachines([...machines, newMachine]);
       setSnackbar({ open: true, message: 'Machine added successfully!', severity: 'success' });
@@ -188,8 +169,7 @@ const MachineInformation = () => {
               workArea: formData.workArea,
               station: formData.station,
               model: formData.model,
-              details: formData.details,
-              lastUpdated: new Date().toISOString().split('T')[0]
+              details: formData.details
             }
           : machine
       );
@@ -204,395 +184,60 @@ const MachineInformation = () => {
     handleCloseDialog();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active': return 'success';
-      case 'Maintenance': return 'warning';
-      case 'Offline': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Active': return <CheckCircleIcon sx={{ fontSize: '1rem' }} />;
-      case 'Maintenance': return <BuildIcon sx={{ fontSize: '1rem' }} />;
-      case 'Offline': return <WarningIcon sx={{ fontSize: '1rem' }} />;
-      default: return <InfoIcon sx={{ fontSize: '1rem' }} />;
-    }
-  };
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      width: '100vw',
-      overflowX: 'hidden',
-      bgcolor: 'background.default',
-      backgroundImage: `url(/bgformain.jpg)`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
-    }}>
-      {/* Header - Same as HomeScreen */}
-      <AppBar position="fixed" sx={{
-        width: '100%',
-        maxWidth: '100vw',
-        left: 0,
-        right: 0,
-        background: 'linear-gradient(135deg, #FFC500 0%, #FFD700 50%, #FFC500 100%)',
-        boxShadow: '0 4px 20px rgba(255, 197, 0, 0.3), 0 2px 10px rgba(0,0,0,0.1)',
-        height: 80,
-        borderBottom: '2px solid rgba(255,255,255,0.2)',
-        backdropFilter: 'blur(10px)'
-      }}>
-        <Container maxWidth="xl" disableGutters>
-          <Toolbar sx={{
-            px: { xs: 2, md: 4 },
-            justifyContent: 'space-between',
-            height: '100%',
-            position: 'relative'
-          }}>
-            {/* Left Section - Logo and Brand */}
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%',
-              position: 'relative'
-            }}>
-              {/* Back Button */}
-              <IconButton
-                onClick={handleBack}
-                sx={{
-                  mr: 2,
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }
-                }}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-
-              {/* Logo Container */}
-              <Box sx={{
-                mr: 3,
-                width: 60,
-                height: 60,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '50%',
-                background: 'linear-gradient(145deg, #1a365d, #2d4a7a)',
-                boxShadow: '0 8px 32px rgba(26, 54, 93, 0.4), inset 0 2px 4px rgba(255,255,255,0.2)',
-                border: '3px solid #FFD700',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.08) rotate(8deg)',
-                  boxShadow: '0 12px 40px rgba(26, 54, 93, 0.6), inset 0 2px 6px rgba(255,255,255,0.3)',
-                  border: '3px solid #FFC500'
-                }
-              }}>
-                <img
-                  src="/Logoforcat.png"
-                  alt="Brooklyne Park CAT Logo"
-                  style={{
-                    width: '70%',
-                    height: '70%',
-                    objectFit: 'contain',
-                    filter: 'brightness(1.1) contrast(1.1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))'
-                  }}
-                />
-              </Box>
-
-              {/* Brand Text */}
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Typography variant="h5" component="div" sx={{
-                  fontWeight: 800,
-                  background: 'linear-gradient(45deg, #1a365d, #2d7ff9, #1a365d)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  fontSize: '1.4rem',
-                  letterSpacing: '0.5px',
-                  mb: 0.2
-                }}>
-                  BROOKLYNE PARK CAT
-                </Typography>
-                <Typography variant="caption" sx={{
-                  color: 'rgba(26, 54, 93, 0.8)',
-                  fontWeight: 500,
-                  fontSize: '0.75rem',
-                  letterSpacing: '1px',
-                  textTransform: 'uppercase'
-                }}>
-                  Machine Information Management
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Center Section - Machine Info Title */}
-            <Box sx={{
-              display: { xs: 'none', md: 'flex' },
-              alignItems: 'center',
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)'
-            }}>
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                borderRadius: '20px',
-                padding: '8px 16px',
-                border: '1px solid rgba(255,255,255,0.3)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <PrecisionManufacturingIcon sx={{ color: '#1a365d', mr: 1, fontSize: '1.2rem' }} />
-                <Typography variant="body2" sx={{
-                  color: '#1a365d',
-                  fontWeight: 600,
-                  fontSize: '0.85rem'
-                }}>
-                  Machine Database
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Right Section - User Actions */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                sx={{
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)'
-                  }
-                }}
-              >
-                <Badge
-                  badgeContent={notifications}
-                  color="error"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      fontSize: '0.7rem',
-                      minWidth: '18px',
-                      height: '18px'
-                    }
-                  }}
-                >
-                  <NotificationsIcon sx={{ fontSize: '1.3rem' }} />
-                </Badge>
-              </IconButton>
-
-              <IconButton
-                sx={{
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)'
-                  }
-                }}
-              >
-                <AccountCircleIcon sx={{ fontSize: '1.4rem' }} />
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      {/* Main Content */}
-      <Container
-        component="main"
-        maxWidth="xl"
-        disableGutters
-        sx={{
-          flex: 1,
-          pt: { xs: 11, sm: 12 },
-          pb: 4,
-          px: { xs: 2, md: 4 },
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            zIndex: 0,
-          }
-        }}
-      >
-        <Box sx={{
-          maxWidth: 1400,
-          mx: 'auto',
-          width: '100%',
-          position: 'relative',
-          zIndex: 1
-        }}>
+    <MainLayout>
+      <Container {...commonStyles.mainContent}>
+        {/* Main Content */}
+        <Box sx={commonStyles.contentWrapper}>
           {/* Header Section */}
           <Fade in={loaded} timeout={1000}>
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography variant="h4" component="h1" sx={{
-                mb: 2,
-                fontWeight: 700,
-                color: 'text.primary',
-                background: 'linear-gradient(45deg, #1a365d, #2d7ff9)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
+            <Box sx={commonStyles.pageHeader}>
+              <Typography variant="h4" component="h1" sx={commonStyles.pageTitle}>
                 Machine Information Management
               </Typography>
-              <Typography variant="h6" sx={{
-                color: 'text.secondary',
-                fontWeight: 400,
-                mb: 2
-              }}>
-                {currentTime.toLocaleString()}
-              </Typography>
-              <Chip
-                label={`${machines.length} Machines Registered`}
-                color="primary"
-                variant="outlined"
-                icon={<PrecisionManufacturingIcon />}
-                sx={{
-                  animation: 'pulse 2s infinite',
-                  '@keyframes pulse': {
-                    '0%': { opacity: 1 },
-                    '50%': { opacity: 0.7 },
-                    '100%': { opacity: 1 }
-                  }
-                }}
-              />
             </Box>
           </Fade>
 
-          {/* Action Buttons */}
+          {/* Add Button */}
           <Grow in={loaded} timeout={1200}>
-            <Box sx={{ mb: 4 }}>
-              <Card sx={{
-                background: 'rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 3,
-                boxShadow: '0 8px 32px rgba(26, 54, 93, 0.1)'
-              }}>
-                <CardContent>
-                  <Box sx={{
-                    display: 'flex',
-                    gap: 2,
-                    justifyContent: 'center',
-                    flexWrap: 'wrap'
-                  }}>
-                    <Button
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      onClick={() => handleOpenDialog('add')}
-                      sx={{
-                        background: 'linear-gradient(45deg, #10b981, #059669)',
-                        boxShadow: '0 4px 20px rgba(16, 185, 129, 0.3)',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #059669, #10b981)',
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 6px 25px rgba(16, 185, 129, 0.4)'
-                        },
-                        transition: 'all 0.3s ease',
-                        px: 3,
-                        py: 1
-                      }}
-                    >
-                      Add Machine
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<EditIcon />}
-                      disabled={!selectedMachine}
-                      sx={{
-                        borderColor: theme.palette.primary.main,
-                        color: theme.palette.primary.main,
-                        '&:hover': {
-                          backgroundColor: `${theme.palette.primary.main}10`,
-                          transform: 'translateY(-2px)'
-                        },
-                        transition: 'all 0.3s ease',
-                        px: 3,
-                        py: 1
-                      }}
-                    >
-                      Update Selected
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<DeleteIcon />}
-                      disabled={!selectedMachine}
-                      sx={{
-                        borderColor: theme.palette.error.main,
-                        color: theme.palette.error.main,
-                        '&:hover': {
-                          backgroundColor: `${theme.palette.error.main}10`,
-                          transform: 'translateY(-2px)'
-                        },
-                        transition: 'all 0.3s ease',
-                        px: 3,
-                        py: 1
-                      }}
-                    >
-                      Delete Selected
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              mb: 3 
+            }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleOpenDialog('add')}
+                sx={{
+                  background: 'linear-gradient(45deg, #10b981, #059669)',
+                  boxShadow: '0 4px 20px rgba(16, 185, 129, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #059669, #10b981)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 25px rgba(16, 185, 129, 0.4)'
+                  },
+                  transition: 'all 0.3s ease',
+                  px: 3,
+                  py: 1.5
+                }}
+              >
+                Add Machine
+              </Button>
             </Box>
           </Grow>
 
           {/* Data Table */}
           <Grow in={loaded} timeout={1400}>
-            <TableContainer component={Paper} sx={{
-              background: 'rgba(255,255,255,0.9)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: 3,
-              boxShadow: '0 8px 32px rgba(26, 54, 93, 0.1)',
-              overflow: 'hidden'
-            }}>
+            <TableContainer component={Paper} sx={commonStyles.dataTable}>
               <Table sx={{ minWidth: 650 }}>
                 <TableHead>
-                  <TableRow sx={{
-                    background: 'linear-gradient(135deg, #1a365d, #2d4a7a)',
-                    '& th': {
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      borderBottom: 'none'
-                    }
-                  }}>
+                  <TableRow>
                     <TableCell>Work Area</TableCell>
                     <TableCell>Station</TableCell>
                     <TableCell>Model</TableCell>
                     <TableCell>Details</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Last Updated</TableCell>
                     <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -629,18 +274,6 @@ const MachineInformation = () => {
                         }}>
                           {machine.details}
                         </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          icon={getStatusIcon(machine.status)}
-                          label={machine.status}
-                          color={getStatusColor(machine.status) as any}
-                          size="small"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
-                        {machine.lastUpdated}
                       </TableCell>
                       <TableCell align="center">
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
@@ -691,26 +324,6 @@ const MachineInformation = () => {
         </Box>
       </Container>
 
-      {/* Floating Action Button */}
-      <Zoom in={loaded} timeout={1600}>
-        <Fab
-          color="primary"
-          sx={{
-            position: 'fixed',
-            bottom: 32,
-            right: 32,
-            background: 'linear-gradient(45deg, #10b981, #059669)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #059669, #10b981)',
-              transform: 'scale(1.1)'
-            },
-            boxShadow: '0 8px 32px rgba(16, 185, 129, 0.3)'
-          }}
-          onClick={() => handleOpenDialog('add')}
-        >
-          <AddIcon />
-        </Fab>
-      </Zoom>
 
       {/* Enhanced Dialog for Add/Edit/Delete */}
       <EnhancedDialog
@@ -755,7 +368,7 @@ const MachineInformation = () => {
         ) : (
           <Box sx={{ mt: 2 }}>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <TextField
                   fullWidth
                   label="Work Area"
@@ -773,7 +386,7 @@ const MachineInformation = () => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <TextField
                   fullWidth
                   label="Station"
@@ -791,7 +404,7 @@ const MachineInformation = () => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid xs={12}>
                 <TextField
                   fullWidth
                   label="Model"
@@ -810,7 +423,7 @@ const MachineInformation = () => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid xs={12}>
                 <TextField
                   fullWidth
                   label="Details"
@@ -833,7 +446,7 @@ const MachineInformation = () => {
               
               {/* Preview Section for Edit/Add */}
               {(dialogMode === 'add' || dialogMode === 'edit') && formData.workArea && formData.station && (
-                <Grid item xs={12}>
+                <Grid xs={12}>
                   <Box sx={{
                     p: 3,
                     backgroundColor: 'rgba(26, 54, 93, 0.05)',
@@ -846,16 +459,16 @@ const MachineInformation = () => {
                       Machine Preview
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={6}>
+                      <Grid xs={6}>
                         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Work Area:</Typography>
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>{formData.workArea || 'Not specified'}</Typography>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid xs={6}>
                         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Station:</Typography>
                         <Typography variant="body1" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>{formData.station || 'Not specified'}</Typography>
                       </Grid>
                       {formData.model && (
-                        <Grid item xs={12}>
+                        <Grid xs={12}>
                           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Model:</Typography>
                           <Typography variant="body1" sx={{ fontWeight: 600, fontFamily: 'monospace' }}>{formData.model}</Typography>
                         </Grid>
@@ -885,25 +498,7 @@ const MachineInformation = () => {
         </Alert>
       </Snackbar>
 
-      {/* Footer */}
-      <Box component="footer" sx={{
-        width: '100%',
-        py: 2,
-        px: { xs: 2, md: 4 },
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        bgcolor: 'background.paper'
-      }}>
-        <Container maxWidth="xl" disableGutters sx={{
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <Typography variant="body2">
-            {new Date().getFullYear()} Brooklyne Park CAT
-          </Typography>
-        </Container>
-      </Box>
-    </Box>
+    </MainLayout>
   );
 };
 

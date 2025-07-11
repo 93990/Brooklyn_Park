@@ -2,12 +2,8 @@ import {
   Container,
   Typography,
   Box,
-  AppBar,
-  Toolbar,
-  IconButton,
   Paper,
   useTheme,
-  Badge,
   Fade,
   Grow,
   Button,
@@ -26,40 +22,28 @@ import {
   Tooltip,
   Card,
   CardContent,
-  Grid,
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  Grid,
+  IconButton // Added IconButton import
 } from '@mui/material';
 import EnhancedDialog from '../components/EnhancedDialog';
+import Header from '../components/Header'; // Added Header import
+import Footer from '../components/Footer'; // Added Footer import
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-import InfoIcon from '@mui/icons-material/Info';
-import BuildIcon from '@mui/icons-material/Build';
-import ErrorIcon from '@mui/icons-material/Error';
-import WarningIcon from '@mui/icons-material/Warning';
-import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
-import EngineeringIcon from '@mui/icons-material/Engineering';
 
 interface DowntimeData {
   id: number;
   downtimeType: string;
   downtimeReason: string;
   details: string;
-  severity: 'Low' | 'Medium' | 'High' | 'Critical';
-  dateReported: string;
-  duration: string;
-  status: 'Active' | 'Resolved' | 'In Progress';
 }
 
 const DowntimeList = () => {
@@ -67,7 +51,6 @@ const DowntimeList = () => {
   const theme = useTheme();
   const [loaded, setLoaded] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [notifications, setNotifications] = useState(3);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState<'add' | 'edit' | 'delete'>('add');
   const [selectedDowntime, setSelectedDowntime] = useState<DowntimeData | null>(null);
@@ -77,8 +60,7 @@ const DowntimeList = () => {
   const [formData, setFormData] = useState({
     downtimeType: '',
     downtimeReason: '',
-    details: '',
-    severity: 'Medium' as 'Low' | 'Medium' | 'High' | 'Critical'
+    details: ''
   });
 
   // Predefined downtime types and reasons
@@ -115,61 +97,37 @@ const DowntimeList = () => {
       id: 1,
       downtimeType: 'Mechanical Failure',
       downtimeReason: 'Equipment Breakdown',
-      details: 'Main conveyor belt motor failed during production shift. Requires immediate replacement of motor assembly.',
-      severity: 'High',
-      dateReported: '2024-01-15',
-      duration: '4.5 hours',
-      status: 'Resolved'
+      details: 'Main conveyor belt motor failed during production shift. Requires immediate replacement of motor assembly.'
     },
     {
       id: 2,
       downtimeType: 'Maintenance',
       downtimeReason: 'Preventive Maintenance',
-      details: 'Scheduled weekly maintenance on hydraulic systems and lubrication of moving parts.',
-      severity: 'Low',
-      dateReported: '2024-01-14',
-      duration: '2 hours',
-      status: 'Resolved'
+      details: 'Scheduled weekly maintenance on hydraulic systems and lubrication of moving parts.'
     },
     {
       id: 3,
       downtimeType: 'Electrical Issue',
       downtimeReason: 'Power Outage',
-      details: 'Unexpected power failure in Section B causing production line shutdown. Grid power restored.',
-      severity: 'Critical',
-      dateReported: '2024-01-12',
-      duration: '6 hours',
-      status: 'Resolved'
+      details: 'Unexpected power failure in Section B causing production line shutdown. Grid power restored.'
     },
     {
       id: 4,
       downtimeType: 'Quality Issue',
       downtimeReason: 'Quality Inspection',
-      details: 'Quality control identified dimensional variations requiring machine recalibration.',
-      severity: 'Medium',
-      dateReported: '2024-01-10',
-      duration: '3 hours',
-      status: 'In Progress'
+      details: 'Quality control identified dimensional variations requiring machine recalibration.'
     },
     {
       id: 5,
       downtimeType: 'Material Shortage',
       downtimeReason: 'Raw Material Delay',
-      details: 'Critical raw material delivery delayed due to supplier logistics issues.',
-      severity: 'High',
-      dateReported: '2024-01-08',
-      duration: '8 hours',
-      status: 'Active'
+      details: 'Critical raw material delivery delayed due to supplier logistics issues.'
     },
     {
       id: 6,
       downtimeType: 'Software Malfunction',
       downtimeReason: 'Software Update',
-      details: 'Production control software experiencing compatibility issues after recent update.',
-      severity: 'Medium',
-      dateReported: '2024-01-06',
-      duration: '1.5 hours',
-      status: 'Resolved'
+      details: 'Production control software experiencing compatibility issues after recent update.'
     }
   ]);
 
@@ -179,9 +137,6 @@ const DowntimeList = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleBack = () => {
-    navigate('/configuration');
-  };
 
   const handleOpenDialog = (mode: 'add' | 'edit' | 'delete', downtime?: DowntimeData) => {
     setDialogMode(mode);
@@ -191,15 +146,13 @@ const DowntimeList = () => {
       setFormData({
         downtimeType: downtime.downtimeType,
         downtimeReason: downtime.downtimeReason,
-        details: downtime.details,
-        severity: downtime.severity
+        details: downtime.details
       });
     } else if (mode === 'add') {
       setFormData({
         downtimeType: '',
         downtimeReason: '',
-        details: '',
-        severity: 'Medium'
+        details: ''
       });
     }
     
@@ -212,8 +165,7 @@ const DowntimeList = () => {
     setFormData({
       downtimeType: '',
       downtimeReason: '',
-      details: '',
-      severity: 'Medium'
+      details: ''
     });
   };
 
@@ -223,11 +175,7 @@ const DowntimeList = () => {
         id: downtimes.length + 1,
         downtimeType: formData.downtimeType,
         downtimeReason: formData.downtimeReason,
-        details: formData.details,
-        severity: formData.severity,
-        dateReported: new Date().toISOString().split('T')[0],
-        duration: '0 hours',
-        status: 'Active'
+        details: formData.details
       };
       setDowntimes([...downtimes, newDowntime]);
       setSnackbar({ open: true, message: 'Downtime record added successfully!', severity: 'success' });
@@ -238,8 +186,7 @@ const DowntimeList = () => {
               ...downtime,
               downtimeType: formData.downtimeType,
               downtimeReason: formData.downtimeReason,
-              details: formData.details,
-              severity: formData.severity
+              details: formData.details
             }
           : downtime
       );
@@ -254,231 +201,24 @@ const DowntimeList = () => {
     handleCloseDialog();
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'Low': return 'success';
-      case 'Medium': return 'warning';
-      case 'High': return 'error';
-      case 'Critical': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'Low': return <InfoIcon sx={{ fontSize: '1rem' }} />;
-      case 'Medium': return <WarningIcon sx={{ fontSize: '1rem' }} />;
-      case 'High': return <ErrorIcon sx={{ fontSize: '1rem' }} />;
-      case 'Critical': return <PriorityHighIcon sx={{ fontSize: '1rem' }} />;
-      default: return <InfoIcon sx={{ fontSize: '1rem' }} />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active': return 'error';
-      case 'In Progress': return 'warning';
-      case 'Resolved': return 'success';
-      default: return 'default';
-    }
-  };
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      width: '100vw',
-      overflowX: 'hidden',
-      bgcolor: 'background.default',
-      backgroundImage: `url(/bgformain.jpg)`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
-    }}>
-      {/* Header - Same as HomeScreen */}
-      <AppBar position="fixed" sx={{
-        width: '100%',
-        maxWidth: '100vw',
-        left: 0,
-        right: 0,
-        background: 'linear-gradient(135deg, #FFC500 0%, #FFD700 50%, #FFC500 100%)',
-        boxShadow: '0 4px 20px rgba(255, 197, 0, 0.3), 0 2px 10px rgba(0,0,0,0.1)',
-        height: 80,
-        borderBottom: '2px solid rgba(255,255,255,0.2)',
-        backdropFilter: 'blur(10px)'
-      }}>
-        <Container maxWidth="xl" disableGutters>
-          <Toolbar sx={{
-            px: { xs: 2, md: 4 },
-            justifyContent: 'space-between',
-            height: '100%',
-            position: 'relative'
-          }}>
-            {/* Left Section - Logo and Brand */}
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%',
-              position: 'relative'
-            }}>
-              {/* Back Button */}
-              <IconButton
-                onClick={handleBack}
-                sx={{
-                  mr: 2,
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }
-                }}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-
-              {/* Logo Container */}
-              <Box sx={{
-                mr: 3,
-                width: 60,
-                height: 60,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '50%',
-                background: 'linear-gradient(145deg, #1a365d, #2d4a7a)',
-                boxShadow: '0 8px 32px rgba(26, 54, 93, 0.4), inset 0 2px 4px rgba(255,255,255,0.2)',
-                border: '3px solid #FFD700',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.08) rotate(8deg)',
-                  boxShadow: '0 12px 40px rgba(26, 54, 93, 0.6), inset 0 2px 6px rgba(255,255,255,0.3)',
-                  border: '3px solid #FFC500'
-                }
-              }}>
-                <img
-                  src="/Logoforcat.png"
-                  alt="Brooklyne Park CAT Logo"
-                  style={{
-                    width: '70%',
-                    height: '70%',
-                    objectFit: 'contain',
-                    filter: 'brightness(1.1) contrast(1.1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))'
-                  }}
-                />
-              </Box>
-
-              {/* Brand Text */}
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Typography variant="h5" component="div" sx={{
-                  fontWeight: 800,
-                  background: 'linear-gradient(45deg, #1a365d, #2d7ff9, #1a365d)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  fontSize: '1.4rem',
-                  letterSpacing: '0.5px',
-                  mb: 0.2
-                }}>
-                  BROOKLYNE PARK CAT
-                </Typography>
-                <Typography variant="caption" sx={{
-                  color: 'rgba(26, 54, 93, 0.8)',
-                  fontWeight: 500,
-                  fontSize: '0.75rem',
-                  letterSpacing: '1px',
-                  textTransform: 'uppercase'
-                }}>
-                  Downtime Management System
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Center Section - Downtime Title */}
-            <Box sx={{
-              display: { xs: 'none', md: 'flex' },
-              alignItems: 'center',
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)'
-            }}>
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                borderRadius: '20px',
-                padding: '8px 16px',
-                border: '1px solid rgba(255,255,255,0.3)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <EngineeringIcon sx={{ color: '#1a365d', mr: 1, fontSize: '1.2rem' }} />
-                <Typography variant="body2" sx={{
-                  color: '#1a365d',
-                  fontWeight: 600,
-                  fontSize: '0.85rem'
-                }}>
-                  Downtime Database
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Right Section - User Actions */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                sx={{
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)'
-                  }
-                }}
-              >
-                <Badge
-                  badgeContent={notifications}
-                  color="error"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      fontSize: '0.7rem',
-                      minWidth: '18px',
-                      height: '18px'
-                    }
-                  }}
-                >
-                  <NotificationsIcon sx={{ fontSize: '1.3rem' }} />
-                </Badge>
-              </IconButton>
-
-              <IconButton
-                sx={{
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)'
-                  }
-                }}
-              >
-                <AccountCircleIcon sx={{ fontSize: '1.4rem' }} />
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      {/* Main Content */}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        width: '100vw',
+        overflowX: 'hidden',
+        bgcolor: 'background.default',
+        backgroundImage: `url(/bgformain.jpg)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <Header /> // Added Header component
       <Container
         component="main"
         maxWidth="xl"
@@ -563,7 +303,7 @@ const DowntimeList = () => {
                   <Box sx={{
                     display: 'flex',
                     gap: 2,
-                    justifyContent: 'center',
+                    justifyContent: 'flex-end',
                     flexWrap: 'wrap'
                   }}>
                     <Button
@@ -584,44 +324,6 @@ const DowntimeList = () => {
                       }}
                     >
                       Add Downtime
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<EditIcon />}
-                      disabled={!selectedDowntime}
-                      onClick={() => selectedDowntime && handleOpenDialog('edit', selectedDowntime)}
-                      sx={{
-                        borderColor: theme.palette.warning.main,
-                        color: theme.palette.warning.main,
-                        '&:hover': {
-                          backgroundColor: `${theme.palette.warning.main}10`,
-                          transform: 'translateY(-2px)'
-                        },
-                        transition: 'all 0.3s ease',
-                        px: 3,
-                        py: 1
-                      }}
-                    >
-                      Update Selected
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<DeleteIcon />}
-                      disabled={!selectedDowntime}
-                      onClick={() => selectedDowntime && handleOpenDialog('delete', selectedDowntime)}
-                      sx={{
-                        borderColor: theme.palette.error.main,
-                        color: theme.palette.error.main,
-                        '&:hover': {
-                          backgroundColor: `${theme.palette.error.main}10`,
-                          transform: 'translateY(-2px)'
-                        },
-                        transition: 'all 0.3s ease',
-                        px: 3,
-                        py: 1
-                      }}
-                    >
-                      Delete Selected
                     </Button>
                   </Box>
                 </CardContent>
@@ -653,15 +355,11 @@ const DowntimeList = () => {
                     <TableCell>Downtime Type</TableCell>
                     <TableCell>Downtime Reason</TableCell>
                     <TableCell>Details</TableCell>
-                    <TableCell>Severity</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Date Reported</TableCell>
-                    <TableCell>Duration</TableCell>
                     <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {downtimes.map((downtime, index) => (
+  {downtimes.map((downtime) => (
                     <TableRow
                       key={downtime.id}
                       onClick={() => setSelectedDowntime(downtime)}
@@ -684,7 +382,7 @@ const DowntimeList = () => {
                       <TableCell sx={{ fontWeight: 500 }}>
                         {downtime.downtimeReason}
                       </TableCell>
-                      <TableCell sx={{ maxWidth: 300 }}>
+                      <TableCell sx={{ maxWidth: 400 }}>
                         <Typography variant="body2" sx={{
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -692,29 +390,6 @@ const DowntimeList = () => {
                         }}>
                           {downtime.details}
                         </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          icon={getSeverityIcon(downtime.severity)}
-                          label={downtime.severity}
-                          color={getSeverityColor(downtime.severity) as any}
-                          size="small"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={downtime.status}
-                          color={getStatusColor(downtime.status) as any}
-                          size="small"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
-                        {downtime.dateReported}
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary', fontSize: '0.9rem', fontFamily: 'monospace' }}>
-                        {downtime.duration}
                       </TableCell>
                       <TableCell align="center">
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
@@ -880,58 +555,6 @@ const DowntimeList = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl 
-                  fullWidth 
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      '&:hover fieldset': {
-                        borderColor: theme.palette.error.main,
-                      },
-                    },
-                  }}
-                >
-                  <InputLabel>Severity Level</InputLabel>
-                  <Select
-                    value={formData.severity}
-                    onChange={(e) => setFormData({ ...formData, severity: e.target.value as any })}
-                    label="Severity Level"
-                  >
-                    <MenuItem value="Low">
-                      <Chip label="Low" color="success" size="small" sx={{ mr: 1 }} />
-                      Low Impact
-                    </MenuItem>
-                    <MenuItem value="Medium">
-                      <Chip label="Medium" color="warning" size="small" sx={{ mr: 1 }} />
-                      Medium Impact
-                    </MenuItem>
-                    <MenuItem value="High">
-                      <Chip label="High" color="error" size="small" sx={{ mr: 1 }} />
-                      High Impact
-                    </MenuItem>
-                    <MenuItem value="Critical">
-                      <Chip label="Critical" color="error" size="small" sx={{ mr: 1 }} />
-                      Critical Impact
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Box sx={{
-                  p: 2,
-                  backgroundColor: 'rgba(239, 68, 68, 0.05)',
-                  borderRadius: 2,
-                  border: '1px solid rgba(239, 68, 68, 0.1)'
-                }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: theme.palette.error.main }}>
-                    Current Status: Active
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    New downtime records are automatically set to "Active" status.
-                  </Typography>
-                </Box>
-              </Grid>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -968,23 +591,22 @@ const DowntimeList = () => {
                       Downtime Record Preview
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
                         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Type:</Typography>
                         <Typography variant="body1" sx={{ fontWeight: 600, color: theme.palette.error.main }}>{formData.downtimeType}</Typography>
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
                         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Reason:</Typography>
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>{formData.downtimeReason}</Typography>
                       </Grid>
-                      <Grid item xs={12} md={4}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Severity:</Typography>
-                        <Chip 
-                          label={formData.severity} 
-                          color={formData.severity === 'Low' ? 'success' : formData.severity === 'Medium' ? 'warning' : 'error'} 
-                          size="small"
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </Grid>
+                      {formData.details && (
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Details:</Typography>
+                          <Typography variant="body2" sx={{ mt: 0.5, p: 1, backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 1 }}>
+                            {formData.details}
+                          </Typography>
+                        </Grid>
+                      )}
                     </Grid>
                   </Box>
                 </Grid>
@@ -1010,24 +632,7 @@ const DowntimeList = () => {
         </Alert>
       </Snackbar>
 
-      {/* Footer */}
-      <Box component="footer" sx={{
-        width: '100%',
-        py: 2,
-        px: { xs: 2, md: 4 },
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        bgcolor: 'background.paper'
-      }}>
-        <Container maxWidth="xl" disableGutters sx={{
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <Typography variant="body2">
-            {new Date().getFullYear()} Brooklyne Park CAT
-          </Typography>
-        </Container>
-      </Box>
+      <Footer />
     </Box>
   );
 };

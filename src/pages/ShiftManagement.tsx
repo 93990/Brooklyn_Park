@@ -17,7 +17,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
   TextField,
   Alert,
   Snackbar,
@@ -26,11 +25,14 @@ import {
   Tooltip,
   Card,
   CardContent,
-  Grid
+  Grid,
+  Chip
 } from '@mui/material';
 import EnhancedDialog from '../components/EnhancedDialog';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import MainLayout from '../layouts/MainLayout';
+import { commonStyles } from '../theme/AppTheme';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -38,12 +40,7 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import WorkIcon from '@mui/icons-material/Work';
-import BusinessIcon from '@mui/icons-material/Business';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 
 interface ShiftData {
@@ -51,11 +48,6 @@ interface ShiftData {
   shiftName: string;
   shiftStartTime: string;
   shiftEndTime: string;
-  duration: string;
-  status: 'Active' | 'Inactive' | 'Scheduled';
-  employeeCount: number;
-  supervisor: string;
-  createdDate: string;
 }
 
 const ShiftManagement = () => {
@@ -82,56 +74,31 @@ const ShiftManagement = () => {
       id: 1,
       shiftName: 'Morning Shift',
       shiftStartTime: '06:00',
-      shiftEndTime: '14:00',
-      duration: '8 hours',
-      status: 'Active',
-      employeeCount: 45,
-      supervisor: 'John Smith',
-      createdDate: '2024-01-15'
+      shiftEndTime: '14:00'
     },
     {
       id: 2,
       shiftName: 'Afternoon Shift',
       shiftStartTime: '14:00',
-      shiftEndTime: '22:00',
-      duration: '8 hours',
-      status: 'Active',
-      employeeCount: 38,
-      supervisor: 'Sarah Johnson',
-      createdDate: '2024-01-15'
+      shiftEndTime: '22:00'
     },
     {
       id: 3,
       shiftName: 'Night Shift',
       shiftStartTime: '22:00',
-      shiftEndTime: '06:00',
-      duration: '8 hours',
-      status: 'Active',
-      employeeCount: 25,
-      supervisor: 'Mike Wilson',
-      createdDate: '2024-01-15'
+      shiftEndTime: '06:00'
     },
     {
       id: 4,
       shiftName: 'Weekend Morning',
       shiftStartTime: '08:00',
-      shiftEndTime: '16:00',
-      duration: '8 hours',
-      status: 'Scheduled',
-      employeeCount: 20,
-      supervisor: 'Lisa Brown',
-      createdDate: '2024-01-10'
+      shiftEndTime: '16:00'
     },
     {
       id: 5,
       shiftName: 'Maintenance Shift',
       shiftStartTime: '00:00',
-      shiftEndTime: '08:00',
-      duration: '8 hours',
-      status: 'Inactive',
-      employeeCount: 12,
-      supervisor: 'David Chen',
-      createdDate: '2024-01-08'
+      shiftEndTime: '08:00'
     }
   ]);
 
@@ -145,22 +112,6 @@ const ShiftManagement = () => {
     navigate('/configuration');
   };
 
-  const calculateDuration = (startTime: string, endTime: string): string => {
-    if (!startTime || !endTime) return '0 hours';
-    
-    const start = new Date(`2000-01-01T${startTime}:00`);
-    let end = new Date(`2000-01-01T${endTime}:00`);
-    
-    // Handle overnight shifts
-    if (end <= start) {
-      end = new Date(`2000-01-02T${endTime}:00`);
-    }
-    
-    const diffMs = end.getTime() - start.getTime();
-    const diffHours = diffMs / (1000 * 60 * 60);
-    
-    return `${diffHours} hours`;
-  };
 
   const handleOpenDialog = (mode: 'add' | 'edit' | 'delete', shift?: ShiftData) => {
     setDialogMode(mode);
@@ -199,12 +150,7 @@ const ShiftManagement = () => {
         id: shifts.length + 1,
         shiftName: formData.shiftName,
         shiftStartTime: formData.shiftStartTime,
-        shiftEndTime: formData.shiftEndTime,
-        duration: calculateDuration(formData.shiftStartTime, formData.shiftEndTime),
-        status: 'Scheduled',
-        employeeCount: 0,
-        supervisor: 'To be assigned',
-        createdDate: new Date().toISOString().split('T')[0]
+        shiftEndTime: formData.shiftEndTime
       };
       setShifts([...shifts, newShift]);
       setSnackbar({ open: true, message: 'Shift added successfully!', severity: 'success' });
@@ -215,8 +161,7 @@ const ShiftManagement = () => {
               ...shift,
               shiftName: formData.shiftName,
               shiftStartTime: formData.shiftStartTime,
-              shiftEndTime: formData.shiftEndTime,
-              duration: calculateDuration(formData.shiftStartTime, formData.shiftEndTime)
+              shiftEndTime: formData.shiftEndTime
             }
           : shift
       );
@@ -231,23 +176,6 @@ const ShiftManagement = () => {
     handleCloseDialog();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active': return 'success';
-      case 'Scheduled': return 'warning';
-      case 'Inactive': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Active': return <CheckCircleIcon sx={{ fontSize: '1rem' }} />;
-      case 'Scheduled': return <ScheduleIcon sx={{ fontSize: '1rem' }} />;
-      case 'Inactive': return <BusinessIcon sx={{ fontSize: '1rem' }} />;
-      default: return <WorkIcon sx={{ fontSize: '1rem' }} />;
-    }
-  };
 
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(':');
@@ -258,236 +186,12 @@ const ShiftManagement = () => {
   };
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      width: '100vw',
-      overflowX: 'hidden',
-      bgcolor: 'background.default',
-      backgroundImage: `url(/bgformain.jpg)`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
-    }}>
-      {/* Header - Same as HomeScreen */}
-      <AppBar position="fixed" sx={{
-        width: '100%',
-        maxWidth: '100vw',
-        left: 0,
-        right: 0,
-        background: 'linear-gradient(135deg, #FFC500 0%, #FFD700 50%, #FFC500 100%)',
-        boxShadow: '0 4px 20px rgba(255, 197, 0, 0.3), 0 2px 10px rgba(0,0,0,0.1)',
-        height: 80,
-        borderBottom: '2px solid rgba(255,255,255,0.2)',
-        backdropFilter: 'blur(10px)'
-      }}>
-        <Container maxWidth="xl" disableGutters>
-          <Toolbar sx={{
-            px: { xs: 2, md: 4 },
-            justifyContent: 'space-between',
-            height: '100%',
-            position: 'relative'
-          }}>
-            {/* Left Section - Logo and Brand */}
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%',
-              position: 'relative'
-            }}>
-              {/* Back Button */}
-              <IconButton
-                onClick={handleBack}
-                sx={{
-                  mr: 2,
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }
-                }}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-
-              {/* Logo Container */}
-              <Box sx={{
-                mr: 3,
-                width: 60,
-                height: 60,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '50%',
-                background: 'linear-gradient(145deg, #1a365d, #2d4a7a)',
-                boxShadow: '0 8px 32px rgba(26, 54, 93, 0.4), inset 0 2px 4px rgba(255,255,255,0.2)',
-                border: '3px solid #FFD700',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.08) rotate(8deg)',
-                  boxShadow: '0 12px 40px rgba(26, 54, 93, 0.6), inset 0 2px 6px rgba(255,255,255,0.3)',
-                  border: '3px solid #FFC500'
-                }
-              }}>
-                <img
-                  src="/Logoforcat.png"
-                  alt="Brooklyne Park CAT Logo"
-                  style={{
-                    width: '70%',
-                    height: '70%',
-                    objectFit: 'contain',
-                    filter: 'brightness(1.1) contrast(1.1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))'
-                  }}
-                />
-              </Box>
-
-              {/* Brand Text */}
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Typography variant="h5" component="div" sx={{
-                  fontWeight: 800,
-                  background: 'linear-gradient(45deg, #1a365d, #2d7ff9, #1a365d)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  fontSize: '1.4rem',
-                  letterSpacing: '0.5px',
-                  mb: 0.2
-                }}>
-                  BROOKLYNE PARK CAT
-                </Typography>
-                <Typography variant="caption" sx={{
-                  color: 'rgba(26, 54, 93, 0.8)',
-                  fontWeight: 500,
-                  fontSize: '0.75rem',
-                  letterSpacing: '1px',
-                  textTransform: 'uppercase'
-                }}>
-                  Shift Management System
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Center Section - Shift Title */}
-            <Box sx={{
-              display: { xs: 'none', md: 'flex' },
-              alignItems: 'center',
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)'
-            }}>
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                borderRadius: '20px',
-                padding: '8px 16px',
-                border: '1px solid rgba(255,255,255,0.3)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <ManageAccountsIcon sx={{ color: '#1a365d', mr: 1, fontSize: '1.2rem' }} />
-                <Typography variant="body2" sx={{
-                  color: '#1a365d',
-                  fontWeight: 600,
-                  fontSize: '0.85rem'
-                }}>
-                  Shift Scheduler
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Right Section - User Actions */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                sx={{
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)'
-                  }
-                }}
-              >
-                <Badge
-                  badgeContent={notifications}
-                  color="error"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      fontSize: '0.7rem',
-                      minWidth: '18px',
-                      height: '18px'
-                    }
-                  }}
-                >
-                  <NotificationsIcon sx={{ fontSize: '1.3rem' }} />
-                </Badge>
-              </IconButton>
-
-              <IconButton
-                sx={{
-                  color: '#1a365d',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    transform: 'scale(1.05)'
-                  }
-                }}
-              >
-                <AccountCircleIcon sx={{ fontSize: '1.4rem' }} />
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      {/* Main Content */}
-      <Container
-        component="main"
-        maxWidth="xl"
-        disableGutters
-        sx={{
-          flex: 1,
-          pt: { xs: 11, sm: 12 },
-          pb: 4,
-          px: { xs: 2, md: 4 },
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            zIndex: 0,
-          }
-        }}
-      >
-        <Box sx={{
-          maxWidth: 1400,
-          mx: 'auto',
-          width: '100%',
-          position: 'relative',
-          zIndex: 1
-        }}>
+    <MainLayout>
+      <Container {...commonStyles.mainContent}>
+        <Box sx={commonStyles.contentWrapper}>
           {/* Header Section */}
           <Fade in={loaded} timeout={1000}>
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Box sx={commonStyles.pageHeader}>
               <Typography variant="h4" component="h1" sx={{
                 mb: 2,
                 fontWeight: 700,
@@ -523,83 +227,32 @@ const ShiftManagement = () => {
             </Box>
           </Fade>
 
-          {/* Action Buttons */}
+          {/* Add Button */}
           <Grow in={loaded} timeout={1200}>
-            <Box sx={{ mb: 4 }}>
-              <Card sx={{
-                background: 'rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 3,
-                boxShadow: '0 8px 32px rgba(245, 158, 11, 0.1)'
-              }}>
-                <CardContent>
-                  <Box sx={{
-                    display: 'flex',
-                    gap: 2,
-                    justifyContent: 'center',
-                    flexWrap: 'wrap'
-                  }}>
-                    <Button
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      onClick={() => handleOpenDialog('add')}
-                      sx={{
-                        background: 'linear-gradient(45deg, #f59e0b, #d97706)',
-                        boxShadow: '0 4px 20px rgba(245, 158, 11, 0.3)',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #d97706, #f59e0b)',
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 6px 25px rgba(245, 158, 11, 0.4)'
-                        },
-                        transition: 'all 0.3s ease',
-                        px: 3,
-                        py: 1
-                      }}
-                    >
-                      Add Shift
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<EditIcon />}
-                      disabled={!selectedShift}
-                      onClick={() => selectedShift && handleOpenDialog('edit', selectedShift)}
-                      sx={{
-                        borderColor: theme.palette.primary.main,
-                        color: theme.palette.primary.main,
-                        '&:hover': {
-                          backgroundColor: `${theme.palette.primary.main}10`,
-                          transform: 'translateY(-2px)'
-                        },
-                        transition: 'all 0.3s ease',
-                        px: 3,
-                        py: 1
-                      }}
-                    >
-                      Update Selected
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<DeleteIcon />}
-                      disabled={!selectedShift}
-                      onClick={() => selectedShift && handleOpenDialog('delete', selectedShift)}
-                      sx={{
-                        borderColor: theme.palette.error.main,
-                        color: theme.palette.error.main,
-                        '&:hover': {
-                          backgroundColor: `${theme.palette.error.main}10`,
-                          transform: 'translateY(-2px)'
-                        },
-                        transition: 'all 0.3s ease',
-                        px: 3,
-                        py: 1
-                      }}
-                    >
-                      Delete Selected
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              mb: 3 
+            }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleOpenDialog('add')}
+                sx={{
+                  background: 'linear-gradient(45deg, #f59e0b, #d97706)',
+                  boxShadow: '0 4px 20px rgba(245, 158, 11, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #d97706, #f59e0b)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 25px rgba(245, 158, 11, 0.4)'
+                  },
+                  transition: 'all 0.3s ease',
+                  px: 3,
+                  py: 1.5
+                }}
+              >
+                Add Shift
+              </Button>
             </Box>
           </Grow>
 
@@ -623,14 +276,10 @@ const ShiftManagement = () => {
                       fontSize: '1rem',
                       borderBottom: 'none'
                     }
-                  }}>
+                  }} >
                     <TableCell>Shift Name</TableCell>
                     <TableCell>Start Time</TableCell>
                     <TableCell>End Time</TableCell>
-                    <TableCell>Duration</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Employees</TableCell>
-                    <TableCell>Supervisor</TableCell>
                     <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -660,24 +309,6 @@ const ShiftManagement = () => {
                       </TableCell>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.9rem', fontWeight: 500 }}>
                         {formatTime(shift.shiftEndTime)}
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 500 }}>
-                        {shift.duration}
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          icon={getStatusIcon(shift.status)}
-                          label={shift.status}
-                          color={getStatusColor(shift.status) as any}
-                          size="small"
-                          sx={{ fontWeight: 500 }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 500, color: theme.palette.primary.main }}>
-                        {shift.employeeCount}
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 500 }}>
-                        {shift.supervisor}
                       </TableCell>
                       <TableCell align="center">
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
@@ -749,38 +380,49 @@ const ShiftManagement = () => {
         </Fab>
       </Zoom>
 
-      {/* Dialog for Add/Edit/Delete */}
-      <Dialog
+      {/* Enhanced Dialog for Add/Edit/Delete */}
+      <EnhancedDialog
         open={openDialog}
         onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            background: 'rgba(255,255,255,0.95)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: 3
-          }
-        }}
+        onSave={handleSave}
+        mode={dialogMode}
+        title={`${dialogMode === 'add' ? 'Add New' : dialogMode === 'edit' ? 'Edit' : 'Delete'} Shift`}
+        maxWidth="md"
+        color="warning"
+        saveButtonText={
+          dialogMode === 'add' ? 'Add Shift' :
+          dialogMode === 'edit' ? 'Update Shift' :
+          'Delete Shift'
+        }
       >
-        <DialogTitle sx={{
-          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-          color: 'white',
-          textAlign: 'center'
-        }}>
-          {dialogMode === 'add' && 'Add New Shift'}
-          {dialogMode === 'edit' && 'Edit Shift'}
-          {dialogMode === 'delete' && 'Delete Shift'}
-        </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
-          {dialogMode === 'delete' ? (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              Are you sure you want to delete the shift "{selectedShift?.shiftName}"?
-              This action cannot be undone and may affect current schedules.
-            </Alert>
-          ) : (
-            <Grid container spacing={2}>
+        {dialogMode === 'delete' ? (
+          <Alert 
+            severity="warning" 
+            sx={{ 
+              mb: 2,
+              borderRadius: 2,
+              '& .MuiAlert-icon': {
+                fontSize: '1.5rem'
+              },
+              '& .MuiAlert-message': {
+                fontSize: '1rem',
+                fontWeight: 500
+              }
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+              Confirm Shift Deletion
+            </Typography>
+            <Typography variant="body1">
+              Are you sure you want to permanently delete the shift <strong>"{selectedShift?.shiftName}"</strong>?
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+              This action cannot be undone and may affect current schedules and employee assignments.
+            </Typography>
+          </Alert>
+        ) : (
+          <Box sx={{ mt: 2 }}>
+            <Grid container spacing={3}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -788,8 +430,15 @@ const ShiftManagement = () => {
                   value={formData.shiftName}
                   onChange={(e) => setFormData({ ...formData, shiftName: e.target.value })}
                   variant="outlined"
-                  sx={{ mb: 2 }}
                   placeholder="e.g., Morning Shift, Night Shift, Weekend Shift"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover fieldset': {
+                        borderColor: theme.palette.warning.main,
+                      },
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -800,9 +449,16 @@ const ShiftManagement = () => {
                   value={formData.shiftStartTime}
                   onChange={(e) => setFormData({ ...formData, shiftStartTime: e.target.value })}
                   variant="outlined"
-                  sx={{ mb: 2 }}
                   InputLabelProps={{
                     shrink: true,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover fieldset': {
+                        borderColor: theme.palette.warning.main,
+                      },
+                    },
                   }}
                 />
               </Grid>
@@ -814,64 +470,61 @@ const ShiftManagement = () => {
                   value={formData.shiftEndTime}
                   onChange={(e) => setFormData({ ...formData, shiftEndTime: e.target.value })}
                   variant="outlined"
-                  sx={{ mb: 2 }}
                   InputLabelProps={{
                     shrink: true,
                   }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover fieldset': {
+                        borderColor: theme.palette.warning.main,
+                      },
+                    },
+                  }}
                 />
               </Grid>
+              
+              {/* Shift Preview */}
               {formData.shiftStartTime && formData.shiftEndTime && (
                 <Grid item xs={12}>
                   <Box sx={{
-                    p: 2,
-                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    p: 3,
+                    backgroundColor: 'rgba(245, 158, 11, 0.05)',
                     borderRadius: 2,
-                    border: '1px solid rgba(245, 158, 11, 0.2)'
+                    border: '1px solid rgba(245, 158, 11, 0.1)',
+                    mt: 1
                   }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.warning.main }}>
-                      <AccessTimeIcon sx={{ fontSize: '1rem', mr: 1, verticalAlign: 'middle' }} />
-                      Duration: {calculateDuration(formData.shiftStartTime, formData.shiftEndTime)}
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: theme.palette.warning.main }}>
+                      <ScheduleIcon sx={{ fontSize: '1.2rem', mr: 1, verticalAlign: 'middle' }} />
+                      Shift Schedule Preview
                     </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={4}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Shift Name:</Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 600, color: theme.palette.warning.main }}>{formData.shiftName || 'Not specified'}</Typography>
+                      </Grid>
+                      <Grid item xs={4}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>Start Time:</Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          <AccessTimeIcon sx={{ fontSize: '1rem', mr: 0.5, verticalAlign: 'middle' }} />
+                          {formatTime(formData.shiftStartTime)}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={4}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>End Time:</Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          <AccessTimeIcon sx={{ fontSize: '1rem', mr: 0.5, verticalAlign: 'middle' }} />
+                          {formatTime(formData.shiftEndTime)}
+                        </Typography>
+                      </Grid>
+                    </Grid>
                   </Box>
                 </Grid>
               )}
             </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 1 }}>
-          <Button
-            onClick={handleCloseDialog}
-            startIcon={<CancelIcon />}
-            variant="outlined"
-            sx={{
-              borderColor: theme.palette.grey[400],
-              color: theme.palette.grey[600]
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            startIcon={<SaveIcon />}
-            variant="contained"
-            color={dialogMode === 'delete' ? 'error' : 'warning'}
-            sx={{
-              background: dialogMode === 'delete'
-                ? 'linear-gradient(45deg, #ef4444, #dc2626)'
-                : 'linear-gradient(45deg, #f59e0b, #d97706)',
-              '&:hover': {
-                background: dialogMode === 'delete'
-                  ? 'linear-gradient(45deg, #dc2626, #ef4444)'
-                  : 'linear-gradient(45deg, #d97706, #f59e0b)'
-              }
-            }}
-          >
-            {dialogMode === 'add' && 'Add Shift'}
-            {dialogMode === 'edit' && 'Update Shift'}
-            {dialogMode === 'delete' && 'Delete Shift'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </Box>
+        )}
+      </EnhancedDialog>
 
       {/* Snackbar for notifications */}
       <Snackbar
@@ -889,25 +542,7 @@ const ShiftManagement = () => {
         </Alert>
       </Snackbar>
 
-      {/* Footer */}
-      <Box component="footer" sx={{
-        width: '100%',
-        py: 2,
-        px: { xs: 2, md: 4 },
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        bgcolor: 'background.paper'
-      }}>
-        <Container maxWidth="xl" disableGutters sx={{
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <Typography variant="body2">
-            {new Date().getFullYear()} Brooklyne Park CAT
-          </Typography>
-        </Container>
-      </Box>
-    </Box>
+    </MainLayout>
   );
 };
 
