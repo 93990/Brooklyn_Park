@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Brooklyn.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250705191303_Create")]
-    partial class Create
+    [Migration("20250714080746_Fixed")]
+    partial class Fixed
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -32,15 +32,13 @@ namespace Brooklyn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("DowntimeLogId"), 1L, 1);
 
-                    b.Property<string>("Details")
+                    b.Property<string>("DowntimeReason")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("DowntimeReasonId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("DowntimeTypeId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("DowntimeType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
@@ -56,12 +54,6 @@ namespace Brooklyn.Migrations
 
                     b.HasKey("DowntimeLogId");
 
-                    b.HasIndex("DowntimeReasonId");
-
-                    b.HasIndex("DowntimeTypeId");
-
-                    b.HasIndex("ModelId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("DowntimeLogs");
@@ -69,22 +61,22 @@ namespace Brooklyn.Migrations
 
             modelBuilder.Entity("Brooklyn.Models.DowntimeReason", b =>
                 {
-                    b.Property<long>("DowntimeReasonId")
+                    b.Property<long>("ReasonId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("DowntimeReasonId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ReasonId"), 1L, 1);
 
-                    b.Property<long>("DowntimeTypeId")
+                    b.Property<long>("DowntimeTypeID")
                         .HasColumnType("bigint");
 
                     b.Property<string>("ReasonText")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("DowntimeReasonId");
+                    b.HasKey("ReasonId");
 
-                    b.HasIndex("DowntimeTypeId");
+                    b.HasIndex("DowntimeTypeID");
 
                     b.ToTable("DowntimeReasons");
                 });
@@ -97,7 +89,7 @@ namespace Brooklyn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("DowntimeTypeId"), 1L, 1);
 
-                    b.Property<string>("TypeName")
+                    b.Property<string>("DownTimeType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -114,13 +106,14 @@ namespace Brooklyn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("MachineId"), 1L, 1);
 
-                    b.Property<long>("ModelId")
+                    b.Property<long?>("ModelId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("StationId")
+                    b.Property<long?>("StationId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("WorkAreaId")
+                    b.Property<long?>("WorkAreaId")
+                        .IsRequired()
                         .HasColumnType("bigint");
 
                     b.HasKey("MachineId");
@@ -136,14 +129,13 @@ namespace Brooklyn.Migrations
 
             modelBuilder.Entity("Brooklyn.Models.Model", b =>
                 {
-                    b.Property<long>("ModelId")
+                    b.Property<long?>("ModelId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ModelId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long?>("ModelId"), 1L, 1);
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ModelId");
@@ -153,33 +145,31 @@ namespace Brooklyn.Migrations
 
             modelBuilder.Entity("Brooklyn.Models.QualityLog", b =>
                 {
-                    b.Property<long>("QualityLogId")
+                    b.Property<long?>("QualityLogId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("QualityLogId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long?>("QualityLogId"), 1L, 1);
 
-                    b.Property<DateTime>("EndTime")
+                    b.Property<DateTime?>("EndTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("ModelId")
+                    b.Property<long?>("ModelId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("PartNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("QualityStatus")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Reason")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("StartTime")
+                    b.Property<DateTime?>("StartTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("UserId")
+                    b.Property<long?>("UserId")
                         .HasColumnType("bigint");
 
                     b.HasKey("QualityLogId");
@@ -222,10 +212,10 @@ namespace Brooklyn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("StandardCycleTimeId"), 1L, 1);
 
-                    b.Property<int>("CycleTimeMinutes")
+                    b.Property<int?>("CycleTimeMinutes")
                         .HasColumnType("int");
 
-                    b.Property<long>("ModelId")
+                    b.Property<long?>("ModelId")
                         .HasColumnType("bigint");
 
                     b.HasKey("StandardCycleTimeId");
@@ -296,35 +286,11 @@ namespace Brooklyn.Migrations
 
             modelBuilder.Entity("Brooklyn.Models.DowntimeLog", b =>
                 {
-                    b.HasOne("Brooklyn.Models.DowntimeReason", "DowntimeReason")
-                        .WithMany()
-                        .HasForeignKey("DowntimeReasonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Brooklyn.Models.DowntimeType", "DowntimeType")
-                        .WithMany()
-                        .HasForeignKey("DowntimeTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Brooklyn.Models.Model", "Model")
-                        .WithMany()
-                        .HasForeignKey("ModelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Brooklyn.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("DowntimeReason");
-
-                    b.Navigation("DowntimeType");
-
-                    b.Navigation("Model");
 
                     b.Navigation("User");
                 });
@@ -332,8 +298,8 @@ namespace Brooklyn.Migrations
             modelBuilder.Entity("Brooklyn.Models.DowntimeReason", b =>
                 {
                     b.HasOne("Brooklyn.Models.DowntimeType", "DowntimeType")
-                        .WithMany()
-                        .HasForeignKey("DowntimeTypeId")
+                        .WithMany("Reason")
+                        .HasForeignKey("DowntimeTypeID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -344,15 +310,11 @@ namespace Brooklyn.Migrations
                 {
                     b.HasOne("Brooklyn.Models.Model", "Model")
                         .WithMany()
-                        .HasForeignKey("ModelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ModelId");
 
                     b.HasOne("Brooklyn.Models.Station", "Station")
                         .WithMany()
-                        .HasForeignKey("StationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StationId");
 
                     b.HasOne("Brooklyn.Models.WorkArea", "WorkArea")
                         .WithMany()
@@ -371,15 +333,11 @@ namespace Brooklyn.Migrations
                 {
                     b.HasOne("Brooklyn.Models.Model", "Model")
                         .WithMany()
-                        .HasForeignKey("ModelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ModelId");
 
                     b.HasOne("Brooklyn.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Model");
 
@@ -390,11 +348,14 @@ namespace Brooklyn.Migrations
                 {
                     b.HasOne("Brooklyn.Models.Model", "Model")
                         .WithMany()
-                        .HasForeignKey("ModelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ModelId");
 
                     b.Navigation("Model");
+                });
+
+            modelBuilder.Entity("Brooklyn.Models.DowntimeType", b =>
+                {
+                    b.Navigation("Reason");
                 });
 #pragma warning restore 612, 618
         }

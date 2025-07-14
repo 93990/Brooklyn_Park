@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Brooklyn.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Sakshi : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,9 +13,10 @@ namespace Brooklyn.Migrations
                 name: "DowntimeTypes",
                 columns: table => new
                 {
-                    DowntimeTypeId = table.Column<int>(type: "int", nullable: false)
+                    DowntimeTypeId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TypeName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    DownTimeType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -26,9 +27,9 @@ namespace Brooklyn.Migrations
                 name: "Models",
                 columns: table => new
                 {
-                    ModelId = table.Column<int>(type: "int", nullable: false)
+                    ModelId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -39,7 +40,7 @@ namespace Brooklyn.Migrations
                 name: "Shifts",
                 columns: table => new
                 {
-                    ShiftId = table.Column<int>(type: "int", nullable: false)
+                    ShiftId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ShiftName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
@@ -54,7 +55,7 @@ namespace Brooklyn.Migrations
                 name: "Stations",
                 columns: table => new
                 {
-                    StationId = table.Column<int>(type: "int", nullable: false)
+                    StationId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
@@ -67,7 +68,7 @@ namespace Brooklyn.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -82,7 +83,7 @@ namespace Brooklyn.Migrations
                 name: "WorkAreas",
                 columns: table => new
                 {
-                    WorkAreaId = table.Column<int>(type: "int", nullable: false)
+                    WorkAreaId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
@@ -92,33 +93,13 @@ namespace Brooklyn.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DowntimeReasons",
-                columns: table => new
-                {
-                    DowntimeReasonId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DowntimeTypeId = table.Column<int>(type: "int", nullable: false),
-                    ReasonText = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DowntimeReasons", x => x.DowntimeReasonId);
-                    table.ForeignKey(
-                        name: "FK_DowntimeReasons_DowntimeTypes_DowntimeTypeId",
-                        column: x => x.DowntimeTypeId,
-                        principalTable: "DowntimeTypes",
-                        principalColumn: "DowntimeTypeId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "StandardCycleTimes",
                 columns: table => new
                 {
-                    StandardCycleTimeId = table.Column<int>(type: "int", nullable: false)
+                    StandardCycleTimeId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ModelId = table.Column<int>(type: "int", nullable: false),
-                    CycleTimeMinutes = table.Column<int>(type: "int", nullable: false)
+                    ModelId = table.Column<long>(type: "bigint", nullable: true),
+                    CycleTimeMinutes = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -127,109 +108,25 @@ namespace Brooklyn.Migrations
                         name: "FK_StandardCycleTimes_Models_ModelId",
                         column: x => x.ModelId,
                         principalTable: "Models",
-                        principalColumn: "ModelId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "QualityLogs",
-                columns: table => new
-                {
-                    QualityLogId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ModelId = table.Column<int>(type: "int", nullable: false),
-                    PartNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    QualityStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_QualityLogs", x => x.QualityLogId);
-                    table.ForeignKey(
-                        name: "FK_QualityLogs_Models_ModelId",
-                        column: x => x.ModelId,
-                        principalTable: "Models",
-                        principalColumn: "ModelId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_QualityLogs_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MachineInformation",
-                columns: table => new
-                {
-                    MachineId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    WorkAreaId = table.Column<int>(type: "int", nullable: false),
-                    StationId = table.Column<int>(type: "int", nullable: false),
-                    ModelId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MachineInformation", x => x.MachineId);
-                    table.ForeignKey(
-                        name: "FK_MachineInformation_Models_ModelId",
-                        column: x => x.ModelId,
-                        principalTable: "Models",
-                        principalColumn: "ModelId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MachineInformation_Stations_StationId",
-                        column: x => x.StationId,
-                        principalTable: "Stations",
-                        principalColumn: "StationId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MachineInformation_WorkAreas_WorkAreaId",
-                        column: x => x.WorkAreaId,
-                        principalTable: "WorkAreas",
-                        principalColumn: "WorkAreaId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ModelId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "DowntimeLogs",
                 columns: table => new
                 {
-                    DowntimeLogId = table.Column<int>(type: "int", nullable: false)
+                    DowntimeLogId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ModelId = table.Column<int>(type: "int", nullable: false),
+                    ModelId = table.Column<long>(type: "bigint", nullable: false),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DowntimeTypeId = table.Column<int>(type: "int", nullable: false),
-                    DowntimeReasonId = table.Column<int>(type: "int", nullable: false),
-                    Details = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    DowntimeType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DowntimeReason = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DowntimeLogs", x => x.DowntimeLogId);
-                    table.ForeignKey(
-                        name: "FK_DowntimeLogs_DowntimeReasons_DowntimeReasonId",
-                        column: x => x.DowntimeReasonId,
-                        principalTable: "DowntimeReasons",
-                        principalColumn: "DowntimeReasonId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DowntimeLogs_DowntimeTypes_DowntimeTypeId",
-                        column: x => x.DowntimeTypeId,
-                        principalTable: "DowntimeTypes",
-                        principalColumn: "DowntimeTypeId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DowntimeLogs_Models_ModelId",
-                        column: x => x.ModelId,
-                        principalTable: "Models",
-                        principalColumn: "ModelId",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_DowntimeLogs_Users_UserId",
                         column: x => x.UserId,
@@ -238,30 +135,70 @@ namespace Brooklyn.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_DowntimeLogs_DowntimeReasonId",
-                table: "DowntimeLogs",
-                column: "DowntimeReasonId");
+            migrationBuilder.CreateTable(
+                name: "QualityLogs",
+                columns: table => new
+                {
+                    QualityLogId = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ModelId = table.Column<long>(type: "bigint", nullable: true),
+                    PartNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    QualityStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_QualityLogs", x => x.QualityLogId);
+                    table.ForeignKey(
+                        name: "FK_QualityLogs_Models_ModelId",
+                        column: x => x.ModelId,
+                        principalTable: "Models",
+                        principalColumn: "ModelId");
+                    table.ForeignKey(
+                        name: "FK_QualityLogs_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_DowntimeLogs_DowntimeTypeId",
-                table: "DowntimeLogs",
-                column: "DowntimeTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DowntimeLogs_ModelId",
-                table: "DowntimeLogs",
-                column: "ModelId");
+            migrationBuilder.CreateTable(
+                name: "MachineInformation",
+                columns: table => new
+                {
+                    MachineId = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    WorkAreaId = table.Column<long>(type: "bigint", nullable: false),
+                    StationId = table.Column<long>(type: "bigint", nullable: true),
+                    ModelId = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MachineInformation", x => x.MachineId);
+                    table.ForeignKey(
+                        name: "FK_MachineInformation_Models_ModelId",
+                        column: x => x.ModelId,
+                        principalTable: "Models",
+                        principalColumn: "ModelId");
+                    table.ForeignKey(
+                        name: "FK_MachineInformation_Stations_StationId",
+                        column: x => x.StationId,
+                        principalTable: "Stations",
+                        principalColumn: "StationId");
+                    table.ForeignKey(
+                        name: "FK_MachineInformation_WorkAreas_WorkAreaId",
+                        column: x => x.WorkAreaId,
+                        principalTable: "WorkAreas",
+                        principalColumn: "WorkAreaId",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_DowntimeLogs_UserId",
                 table: "DowntimeLogs",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DowntimeReasons_DowntimeTypeId",
-                table: "DowntimeReasons",
-                column: "DowntimeTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MachineInformation_ModelId",
@@ -300,6 +237,9 @@ namespace Brooklyn.Migrations
                 name: "DowntimeLogs");
 
             migrationBuilder.DropTable(
+                name: "DowntimeTypes");
+
+            migrationBuilder.DropTable(
                 name: "MachineInformation");
 
             migrationBuilder.DropTable(
@@ -312,9 +252,6 @@ namespace Brooklyn.Migrations
                 name: "StandardCycleTimes");
 
             migrationBuilder.DropTable(
-                name: "DowntimeReasons");
-
-            migrationBuilder.DropTable(
                 name: "Stations");
 
             migrationBuilder.DropTable(
@@ -325,9 +262,6 @@ namespace Brooklyn.Migrations
 
             migrationBuilder.DropTable(
                 name: "Models");
-
-            migrationBuilder.DropTable(
-                name: "DowntimeTypes");
         }
     }
 }

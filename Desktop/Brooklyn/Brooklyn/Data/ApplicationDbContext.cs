@@ -2,6 +2,7 @@
 
 using Brooklyn.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.PortableExecutable;
 
 namespace BrooklynPark.Api.Data
 {
@@ -21,11 +22,49 @@ namespace BrooklynPark.Api.Data
 		public DbSet<Shift> Shifts { get; set; }
 		public DbSet<StandardCycleTime> StandardCycleTimes { get; set; }
 
-		protected override void OnModelCreating(ModelBuilder modelbuilder)
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			base.OnModelCreating(modelbuilder);
+			base.OnModelCreating(modelBuilder);
 
-			modelbuilder.Entity<MachineInformation>().HasKey(mi => mi.MachineId);
+			modelBuilder.Entity<DowntimeType>().Property(dt => dt.DownTimeType)
+				.IsRequired();
+			modelBuilder.Entity<DowntimeReason>().HasKey(dr => dr.ReasonId);
+
+			modelBuilder.Entity<DowntimeReason>()
+				.HasOne(dr => dr.DowntimeType)
+				.WithMany(dt => dt.Reason)
+				.HasForeignKey(dr => dr.DowntimeTypeID).OnDelete(DeleteBehavior.Cascade);
+
+
+
+
+			// 🔹 Downtime FK
+			
+
+			// 🔹 Machine FK setup
+			modelBuilder.Entity<MachineInformation>()
+				.HasOne(m => m.WorkArea)
+				.WithMany()
+				.HasForeignKey(m => m.WorkAreaId);
+
+			modelBuilder.Entity<MachineInformation>()
+				.HasOne(m => m.Station)
+				.WithMany()
+				.HasForeignKey(m => m.StationId);
+
+			modelBuilder.Entity<MachineInformation>()
+				.HasOne(m => m.Model)
+				.WithMany()
+				.HasForeignKey(m => m.ModelId);
+
+			// 🔹 AppUser
+			modelBuilder.Entity<User>()
+				.Property(u => u.Username)
+				.IsRequired();
+
+			modelBuilder.Entity<User>()
+				.Property(u => u.Role)
+				.IsRequired();
 		}
 	}
 }
