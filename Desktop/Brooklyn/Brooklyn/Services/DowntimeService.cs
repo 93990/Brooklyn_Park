@@ -30,11 +30,14 @@ namespace Brooklyn.Services
 		
 		public async Task<DowntimeReasonDto> GetDowntimeReasonsByDowntimeTypeIdAsync(long id)
 		{
-			var item = await _context.DowntimeReasons.Include(r => r.DowntimeType).FirstOrDefaultAsync(r => r.ReasonId == id);
-			return item == null ? null : new DowntimeReasonDto
+			var item = await _context.DowntimeReasons
+.FirstOrDefaultAsync(r => r.ReasonId == id);
+
+			if (item == null) return null;
+
+			return new DowntimeReasonDto
 			{
 				Id = item.ReasonId,
-				//DowntimeType = item.DowntimeType.DownTimeType,
 				DowntimeTypeID = item.DowntimeTypeID,
 				ReasonText = item.ReasonText
 			};
@@ -42,16 +45,25 @@ namespace Brooklyn.Services
 
 		public async Task<DowntimeReasonDto> AddDowntimeReasonAsync(CreateDowntimeReasonDto dto)
 		{
-			var entity = new DowntimeReason
+			var isValidType = await _context.DowntimeTypes.AnyAsync(dt => dt.DowntimeTypeId == dto.DowntimeTypeId);
+			if (!isValidType)
+				throw new ArgumentException($"Invalid DowntimeTypeId: {dto.DowntimeTypeId}");
+
+			var reason = new DowntimeReason
 			{
 				DowntimeTypeID = dto.DowntimeTypeId,
 				ReasonText = dto.Reason
 			};
 
-			_context.DowntimeReasons.Add(entity);
+			_context.DowntimeReasons.Add(reason);
 			await _context.SaveChangesAsync();
 
-			return await GetDowntimeReasonsByDowntimeTypeIdAsync(entity.ReasonId) ?? throw new Exception("Creation failed.");
+			return new DowntimeReasonDto
+			{
+				Id = reason.ReasonId,
+				DowntimeTypeID = reason.DowntimeTypeID,
+				ReasonText = reason.ReasonText
+			};
 		}
 
 		public async Task<DowntimeReasonDto> UpdateDowntimeReasonAsync(long id, UpdateDowntimeReasonDto dto)
@@ -59,19 +71,30 @@ namespace Brooklyn.Services
 			var entity = await _context.DowntimeReasons.FindAsync(id);
 			if (entity == null) return null;
 
-			//entity.DownTypeID = dto.DowntimeTypeId;
+			// Validate the DowntimeTypeId
+			var isValidType = await _context.DowntimeTypes.AnyAsync(dt => dt.DowntimeTypeId == dto.DowntimeTypeId);
+			if (!isValidType)
+				throw new ArgumentException($"Invalid DowntimeTypeId: {dto.DowntimeTypeId}");
+
+			entity.DowntimeTypeID = dto.DowntimeTypeId;
 			entity.ReasonText = dto.Reason;
 
 			await _context.SaveChangesAsync();
-			return await GetDowntimeReasonsByDowntimeTypeIdAsync(id);
+
+			return new DowntimeReasonDto
+			{
+				Id = entity.ReasonId,
+				DowntimeTypeID = entity.DowntimeTypeID,
+				ReasonText = entity.ReasonText
+			};
 		}
 
 		public async Task<bool> DeleteDowntimeReasonAsync(long id)
 		{
-			var item = await _context.DowntimeTypes.FindAsync(id);
+			var item = await _context.DowntimeReasons.FindAsync(id);
 			if (item == null) return false;
 
-			_context.DowntimeTypes.Remove(item);
+			_context.DowntimeReasons.Remove(item);
 			await _context.SaveChangesAsync();
 			return true;
 		}
