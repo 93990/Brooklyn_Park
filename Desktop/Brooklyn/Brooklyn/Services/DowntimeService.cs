@@ -49,6 +49,11 @@ namespace Brooklyn.Services
 			if (!isValidType)
 				throw new ArgumentException($"Invalid DowntimeTypeId: {dto.DowntimeTypeId}");
 
+			// Check for duplicate DowntimeTypeID and ReasonText
+			bool exists = await _context.DowntimeReasons.AnyAsync(r => r.DowntimeTypeID == dto.DowntimeTypeId && r.ReasonText == dto.Reason);
+			if (exists)
+				throw new InvalidOperationException("A downtime reason with the same DowntimeTypeId and Reason already exists.");
+
 			var reason = new DowntimeReason
 			{
 				DowntimeTypeID = dto.DowntimeTypeId,
@@ -70,6 +75,11 @@ namespace Brooklyn.Services
 		{
 			var entity = await _context.DowntimeReasons.FindAsync(id);
 			if (entity == null) return null;
+
+			// Check for duplicate DowntimeTypeID and ReasonText (excluding current record)
+			bool exists = await _context.DowntimeReasons.AnyAsync(r => r.DowntimeTypeID == dto.DowntimeTypeId && r.ReasonText == dto.Reason && r.ReasonId != id);
+			if (exists)
+				throw new InvalidOperationException("A downtime reason with the same DowntimeTypeId and Reason already exists.");
 
 			// Validate the DowntimeTypeId
 			var isValidType = await _context.DowntimeTypes.AnyAsync(dt => dt.DowntimeTypeId == dto.DowntimeTypeId);

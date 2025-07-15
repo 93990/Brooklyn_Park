@@ -95,6 +95,11 @@ namespace Brooklyn.Services
 				await _service.SaveChangesAsync();
 			}
 
+			// Check for duplicate MachineInformation
+			bool exists = await _service.MachineInformation.AnyAsync(m => m.WorkAreaId == workArea.WorkAreaId && m.StationId == station.StationId && m.ModelId == model.ModelId);
+			if (exists)
+				throw new InvalidOperationException("A machine with the same WorkArea, Station, and Model already exists.");
+
 			// Create machine info
 			var machine = new MachineInformation
 			{
@@ -152,6 +157,11 @@ namespace Brooklyn.Services
 				_service.Models.Add(model);
 				await _service.SaveChangesAsync();
 			}
+
+			// Check for duplicate MachineInformation (excluding current record)
+			bool exists = await _service.MachineInformation.AnyAsync(m => m.WorkAreaId == workArea.WorkAreaId && m.StationId == station.StationId && m.ModelId == model.ModelId && m.MachineId != machineId);
+			if (exists)
+				throw new InvalidOperationException("A machine with the same WorkArea, Station, and Model already exists.");
 
 			// Update the machine entity
 			machine.WorkAreaId = workArea.WorkAreaId;

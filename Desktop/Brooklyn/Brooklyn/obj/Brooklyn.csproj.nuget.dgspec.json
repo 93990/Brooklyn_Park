@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\sakshi.pandya\\Desktop\\Brooklyn\\Brooklyn\\Brooklyn.csproj": {}
+    "D:\\workspace\\Brooklyn_Park\\Desktop\\Brooklyn\\Brooklyn\\Brooklyn.csproj": {}
   },
   "projects": {
-    "C:\\Users\\sakshi.pandya\\Desktop\\Brooklyn\\Brooklyn\\Brooklyn.csproj": {
+    "D:\\workspace\\Brooklyn_Park\\Desktop\\Brooklyn\\Brooklyn\\Brooklyn.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\sakshi.pandya\\Desktop\\Brooklyn\\Brooklyn\\Brooklyn.csproj",
+        "projectUniqueName": "D:\\workspace\\Brooklyn_Park\\Desktop\\Brooklyn\\Brooklyn\\Brooklyn.csproj",
         "projectName": "Brooklyn",
-        "projectPath": "C:\\Users\\sakshi.pandya\\Desktop\\Brooklyn\\Brooklyn\\Brooklyn.csproj",
-        "packagesPath": "C:\\Users\\sakshi.pandya\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\sakshi.pandya\\Desktop\\Brooklyn\\Brooklyn\\obj\\",
+        "projectPath": "D:\\workspace\\Brooklyn_Park\\Desktop\\Brooklyn\\Brooklyn\\Brooklyn.csproj",
+        "packagesPath": "C:\\Users\\simon.wadhwani\\.nuget\\packages\\",
+        "outputPath": "D:\\workspace\\Brooklyn_Park\\Desktop\\Brooklyn\\Brooklyn\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\sakshi.pandya\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\simon.wadhwani\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -34,6 +32,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -86,7 +89,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.400\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.408\\RuntimeIdentifierGraph.json"
         }
       }
     }
