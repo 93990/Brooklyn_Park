@@ -66,3 +66,5 @@ C:\Users\sakshi.pandya\Desktop\Brooklyn\Brooklyn\bin\Debug\net6.0\Nest.dll
 C:\Users\sakshi.pandya\Desktop\Brooklyn\Brooklyn\bin\Debug\net6.0\Microsoft.Extensions.Primitives.dll
 C:\Users\sakshi.pandya\Desktop\Brooklyn\Brooklyn\bin\Debug\net6.0\System.Text.Encodings.Web.dll
 C:\Users\sakshi.pandya\Desktop\Brooklyn\Brooklyn\bin\Debug\net6.0\runtimes\browser\lib\net6.0\System.Text.Encodings.Web.dll
+C:\Users\sakshi.pandya\Desktop\Brooklyn\Brooklyn\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\sakshi.pandya\Desktop\Brooklyn\Brooklyn\bin\Debug\net6.0\Microsoft.IdentityModel.Abstractions.dll

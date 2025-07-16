@@ -1,5 +1,7 @@
 ﻿using Brooklyn.Models;
 using Brooklyn.Dtos;
+using Microsoft.AspNetCore.Mvc;
+
 namespace Brooklyn.Services
 {
 	public interface IDowntimeService
@@ -10,5 +12,8 @@ namespace Brooklyn.Services
 		Task<DowntimeReasonDto> AddDowntimeReasonAsync(CreateDowntimeReasonDto createDto);
 		Task<DowntimeReasonDto> UpdateDowntimeReasonAsync(long id, UpdateDowntimeReasonDto updateDto);
 		Task<bool> DeleteDowntimeReasonAsync(long id);
+		Task<List<DowntimeLogDto>> GetAllAsync();
+
+		Task<bool> UpdateAsync([FromBody] UpdateDowntimeLogDto dto);
 	}
 }

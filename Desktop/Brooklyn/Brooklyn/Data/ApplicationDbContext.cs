@@ -1,5 +1,6 @@
 ﻿
 
+using Brooklyn.Dtos;
 using Brooklyn.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.PortableExecutable;
@@ -22,9 +23,17 @@ namespace BrooklynPark.Api.Data
 		public DbSet<Shift> Shifts { get; set; }
 		public DbSet<StandardCycleTime> StandardCycleTimes { get; set; }
 
+		public DbSet<DowntimeLogView> DowntimeLogViews { get; set; }
+
+	//	public DbSet<StandardCycleTime> StandardCycleTimes { get; set; }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
+
+
+			modelBuilder.Entity<StandardCycleTime>().HasOne(s => s.Model).WithMany()
+				.HasForeignKey(s => s.ModelId).OnDelete(DeleteBehavior.Restrict);
 
 			modelBuilder.Entity<DowntimeType>().Property(dt => dt.DownTimeType)
 				.IsRequired();
@@ -35,8 +44,10 @@ namespace BrooklynPark.Api.Data
 				.WithMany(dt => dt.Reason)
 				.HasForeignKey(dr => dr.DowntimeTypeID).OnDelete(DeleteBehavior.Cascade);
 
+			modelBuilder.Entity<DowntimeLogView>().HasNoKey().ToView("vw_DowntimeLogDetails");
 
-
+			base.OnModelCreating(modelBuilder);
+			modelBuilder.Entity<DowntimeLog>().HasKey(x => x.DowntimeId);
 
 			// 🔹 Downtime FK
 			

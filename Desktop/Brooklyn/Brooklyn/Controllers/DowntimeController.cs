@@ -17,10 +17,10 @@ namespace Brooklyn.Controllers
 			_downtimeService = downtimeService;
 		}
 
-		[HttpGet]
+	//	[HttpGet]
 		
 		
-			[HttpGet]
+			[HttpGet("types")]
 			public async Task<ActionResult<List<DowntimeReasonDto>>> GetAllDowntimeTypes()
 			{
 				return Ok(await _downtimeService.GetAllDowntimeTypesAsync());
@@ -53,7 +53,7 @@ namespace Brooklyn.Controllers
 		}
 		//Task<DowntimeDto> UpdateDowntimeReasonAsync(long id, UpdateDowntimeReasonDto updateDto);
 
-		[HttpPut]
+		[HttpPut("types")]
 		public async Task<DowntimeReasonDto> UpdateDowntimeReason(long id, [FromBody] UpdateDowntimeReasonDto updateDto)
 		{
 			try
@@ -72,8 +72,29 @@ namespace Brooklyn.Controllers
 		{
 			var deleted = await _downtimeService.DeleteDowntimeReasonAsync(id);
 			if(!deleted)
-				return NotFound($"No shift found with ID {id}");
-			return Ok("Shift deleted successfully.");
+				return NotFound($"No Downtime reason found with ID {id}");
+			return Ok("Downtime reason deleted successfully.");
+		}
+
+		[HttpGet("operator")]
+		public async Task<List<DowntimeLogDto>> GetAllOperatorValue()
+		{
+			var result = await _downtimeService.GetAllAsync();
+			return result;
+		}
+
+		[HttpPut("operator")]
+		public async Task<bool> UpdateDowntimeLog([FromBody] UpdateDowntimeLogDto dto)
+		{
+			//try
+			//{
+				var updated = await _downtimeService.UpdateAsync(dto);
+				return updated;
+			//}
+			//catch (Exception ex)
+			//{
+			//	return BadRequest(ex.Message);
+			//}
 		}
 	}
 }

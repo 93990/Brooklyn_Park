@@ -17,7 +17,7 @@ namespace Brooklyn.Services
 			_service = service;
 		}
 
-		
+
 		public async Task<MachineInfodto?> GetMachineByIdAsync(long id)
 		{
 			var machine = await _service.MachineInformation
@@ -35,7 +35,7 @@ namespace Brooklyn.Services
 				WorkArea = machine.WorkArea.Name,
 				Station = machine.Station.Name,
 				Model = machine.Model.Name
-			
+
 			};
 		}
 		public async Task<List<MachineInfodto>> GetAllMachineInfo()
@@ -95,6 +95,11 @@ namespace Brooklyn.Services
 				await _service.SaveChangesAsync();
 			}
 
+			// Check for duplicate MachineInformation
+			bool exists = await _service.MachineInformation.AnyAsync(m => m.WorkAreaId == workArea.WorkAreaId && m.StationId == station.StationId && m.ModelId == model.ModelId);
+			if (exists)
+				throw new InvalidOperationException("A machine with the same WorkArea, Station, and Model already exists.");
+
 			// Create machine info
 			var machine = new MachineInformation
 			{
@@ -118,7 +123,7 @@ namespace Brooklyn.Services
 
 
 
-		public async Task<MachineInfodto?> UpdateMachineAsync(long machineId , UpdateMAchineDto dto)
+		public async Task<MachineInfodto?> UpdateMachineAsync(long machineId, UpdateMAchineDto dto)
 		{
 			var machine = await _service.MachineInformation
 				.FirstOrDefaultAsync(m => m.MachineId == machineId);
@@ -153,11 +158,16 @@ namespace Brooklyn.Services
 				await _service.SaveChangesAsync();
 			}
 
+			// Check for duplicate MachineInformation (excluding current record)
+			bool exists = await _service.MachineInformation.AnyAsync(m => m.WorkAreaId == workArea.WorkAreaId && m.StationId == station.StationId && m.ModelId == model.ModelId && m.MachineId != machineId);
+			if (exists)
+				throw new InvalidOperationException("A machine with the same WorkArea, Station, and Model already exists.");
+
 			// Update the machine entity
 			machine.WorkAreaId = workArea.WorkAreaId;
 			machine.StationId = station.StationId;
 			machine.ModelId = model.ModelId;
-			
+
 
 			await _service.SaveChangesAsync();
 
@@ -189,4 +199,4 @@ namespace Brooklyn.Services
 			return true;
 		}
 	}
-	}
+}

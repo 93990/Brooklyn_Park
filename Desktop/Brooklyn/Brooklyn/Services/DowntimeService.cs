@@ -22,12 +22,12 @@ namespace Brooklyn.Services
 			{
 				DowntimeTypeID = d.DowntimeTypeID,
 				//DowntimeType = d.DowntimeType.DownTimeType,
-				ReasonText= d.ReasonText,
+				ReasonText = d.ReasonText,
 				Id = d.ReasonId
 			}).ToListAsync();
 		}
 
-		
+
 		public async Task<DowntimeReasonDto> GetDowntimeReasonsByDowntimeTypeIdAsync(long id)
 		{
 			var item = await _context.DowntimeReasons
@@ -48,6 +48,11 @@ namespace Brooklyn.Services
 			var isValidType = await _context.DowntimeTypes.AnyAsync(dt => dt.DowntimeTypeId == dto.DowntimeTypeId);
 			if (!isValidType)
 				throw new ArgumentException($"Invalid DowntimeTypeId: {dto.DowntimeTypeId}");
+
+			// Check for duplicate DowntimeTypeID and ReasonText
+			bool exists = await _context.DowntimeReasons.AnyAsync(r => r.DowntimeTypeID == dto.DowntimeTypeId && r.ReasonText == dto.Reason);
+			if (exists)
+				throw new InvalidOperationException("A downtime reason with the same DowntimeTypeId and Reason already exists.");
 
 			var reason = new DowntimeReason
 			{
@@ -70,6 +75,11 @@ namespace Brooklyn.Services
 		{
 			var entity = await _context.DowntimeReasons.FindAsync(id);
 			if (entity == null) return null;
+
+			// Check for duplicate DowntimeTypeID and ReasonText (excluding current record)
+			bool exists = await _context.DowntimeReasons.AnyAsync(r => r.DowntimeTypeID == dto.DowntimeTypeId && r.ReasonText == dto.Reason && r.ReasonId != id);
+			if (exists)
+				throw new InvalidOperationException("A downtime reason with the same DowntimeTypeId and Reason already exists.");
 
 			// Validate the DowntimeTypeId
 			var isValidType = await _context.DowntimeTypes.AnyAsync(dt => dt.DowntimeTypeId == dto.DowntimeTypeId);
@@ -95,6 +105,50 @@ namespace Brooklyn.Services
 			if (item == null) return false;
 
 			_context.DowntimeReasons.Remove(item);
+			await _context.SaveChangesAsync();
+			return true;
+		}
+	
+
+public async Task<List<DowntimeLogDto>> GetAllAsync()
+		{
+			return await _context.DowntimeLogViews
+				.Select(v => new DowntimeLogDto
+				{
+					DowntimeId = v.DowntimeId,
+					ModelId = v.ModelId,
+					StartTime = v.StartTime,
+					EndTime = v.EndTime,
+					TotalDowntime = v.TotalDowntime,
+					Name = v.Name,
+					TypeName = v.TypeName,
+					ReasonText = v.ReasonText,
+					Username = v.Username
+				})
+				.ToListAsync();
+		}
+
+
+		public async Task<bool> UpdateAsync(UpdateDowntimeLogDto dto)
+		{
+			var log = await _context.DowntimeLogs.FindAsync(dto.DowntimeId);
+			if (log == null)
+				return false;
+
+			// Validate foreign keys
+			var modelExists = await _context.Models.AnyAsync(m => m.ModelId == dto.ModelId);
+			var typeExists = await _context.DowntimeTypes.AnyAsync(t => t.DowntimeTypeId == dto.DowntimeTypeId);
+			var reasonExists = await _context.DowntimeReasons.AnyAsync(r => r.ReasonId == dto.DowntimeReasonId);
+
+			if (!modelExists || !typeExists || !reasonExists)
+				throw new Exception("Invalid ModelId, DowntimeTypeId, or DowntimeReasonId.");
+
+			// Only update allowed fields
+			log.ModelId = dto.ModelId;
+			log.DowntimeTypeId = dto.DowntimeTypeId;
+			log.DowntimeReasonId = dto.DowntimeReasonId;
+			log.Details = dto.Details;
+
 			await _context.SaveChangesAsync();
 			return true;
 		}

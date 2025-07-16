@@ -47,6 +47,12 @@ namespace Brooklyn.Services
 				CultureInfo.InvariantCulture).TimeOfDay;
 			var end = DateTime.ParseExact(dto.ShiftEndTime, "hh:mm tt",
 				CultureInfo.InvariantCulture).TimeOfDay;
+
+			// Check for duplicate Shift
+			bool exists = await _context.Shifts.AnyAsync(s => s.ShiftName == dto.ShiftName && s.StartTime == start && s.EndTime == end);
+			if (exists)
+				throw new InvalidOperationException("A shift with the same name, start time, and end time already exists.");
+
 			var shift = new Shift
 			{
 				ShiftName = dto.ShiftName,
@@ -69,6 +75,11 @@ namespace Brooklyn.Services
 			var end = DateTime.ParseExact(dto.ShiftEndTime, "hh:mm tt",
 				CultureInfo.InvariantCulture).TimeOfDay;
 
+			// Check for duplicate Shift (excluding current record)
+			bool exists = await _context.Shifts.AnyAsync(s => s.ShiftName == dto.ShiftName && s.StartTime == start && s.EndTime == end && s.ShiftId != id);
+			if (exists)
+				throw new InvalidOperationException("A shift with the same name, start time, and end time already exists.");
+
 			shift.ShiftName = dto.ShiftName;
 			shift.StartTime = start;
 			shift.EndTime = end;
@@ -88,3 +99,4 @@ namespace Brooklyn.Services
 		}
 	}
 }
+

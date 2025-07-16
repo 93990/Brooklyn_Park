@@ -4,7 +4,7 @@
 
 namespace Brooklyn.Migrations
 {
-    public partial class Ne : Migration
+    public partial class Fixe : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
